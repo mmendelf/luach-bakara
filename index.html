@@ -84,7 +84,6 @@
         
         textarea { height: 120px; resize: vertical; line-height: 1.5; }
 
-        /* עיצוב לתיבות הסימון של הנושאים */
         .topics-grid {
             display: flex;
             flex-wrap: wrap;
@@ -125,12 +124,13 @@
 
         th, td {
             border: 1px solid #ddd;
-            padding: 12px;
+            padding: 16px 12px;
             text-align: right;
+            vertical-align: top;
         }
 
         th { background-color: var(--primary-color); color: white; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #fcfcfc; }
         
         .loader {
             display: none;
@@ -226,6 +226,26 @@
             </p>
         </div>
 
+        <div class="card" style="border-right: 5px solid #10b981;">
+            <h2 class="section-title">📊 סנכרון לגוגל שיטס (Google Sheets)</h2>
+            <p style="margin-top:0; color:#555; font-size:14px; margin-bottom: 15px;">
+                המערכת מקושרת מאחורי הקלעים לגוגל שיטס. לחץ על "ייצא הכל" כדי לשלוח את כל הנתונים הקיימים לטבלה. לאחר מכן, <strong>כל תשובה חדשה תעודכן אוטומטית</strong> (כל עוד חלון זה פתוח בדפדפן).
+            </p>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;">
+                <button id="btnExportSheets" style="background-color: #10b981;">🚀 ייצא הכל והפעל סנכרון</button>
+                <button id="btnStopSync" style="background-color: #ef4444; display: none;">🛑 עצור סנכרון</button>
+                <span id="sheetsStatus" class="status-msg"></span>
+            </div>
+            
+            <div id="lastSyncTime" style="font-size: 14px; color: #475569; margin-top: 5px; font-weight: 600;">
+                סנכרון אחרון לשיטס: <span id="syncTimeDisplay" style="font-weight: normal; color: #1e293b;">טרם בוצע מאז פתיחת הדפדפן</span>
+            </div>
+
+            <div id="syncIndicator" style="display:none; color: var(--success-color); font-weight: bold; font-size: 14px; margin-top: 15px; background: #ecfdf5; padding: 10px; border-radius: 8px;">
+                <span class="live-indicator">●</span> הסנכרון האוטומטי פעיל. תשובות חדשות נשלחות ברגע זה לגוגל שיטס.
+            </div>
+        </div>
+
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h2 class="section-title" style="border:none; margin:0; padding:0;">
@@ -240,13 +260,13 @@
                     <thead>
                         <tr>
                             <th style="width: 15%;">נושא</th>
-                            <th style="width: 35%;">השאלה</th>
-                            <th colspan="2" style="width: 50%;">תשובות החברותות</th>
+                            <th style="width: 30%;">השאלה</th>
+                            <th style="width: 55%;">תשובות החברותות</th>
                         </tr>
                     </thead>
                     <tbody id="answersBody">
                         <tr>
-                            <td colspan="4" style="text-align:center;">ממתין לנתונים...</td>
+                            <td colspan="3" style="text-align:center;">ממתין לנתונים...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -259,6 +279,9 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, set, get } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+    // הקישור החדש שביקשת
+    const SYNC_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxFJM5_YUiYhyusuhcQ-zrg-qwz-wc-ngHnwzezTD7WeGT-8AUF0qJnAuld3ZsFl2_O6Q/exec";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBVWWNVMysC7_lkmUzb8ycsN1iON7T8gXI",
@@ -273,18 +296,90 @@
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
-    // משתנים גלובליים לניהול המידע
     let currentQData = null;
     let currentSData = null;
     let currentActiveTopics = ["הכל"];
-    let knownTopicsStr = ""; // למניעת רינדור כפול של התיבות
+    let knownTopicsStr = "";
+    
+    let previousSubmissionsKeys = new Set();
+    let isInitialLoad = true;
+    let autoSyncActive = false;
 
-    // הפעלה מיידית ללא צורך בהתחברות
+    // פונקציה לעדכון זמן הסנכרון בתצוגה
+    function updateLastSyncTime() {
+        const now = new Date();
+        const timeStr = now.toLocaleString('he-IL');
+        document.getElementById('syncTimeDisplay').innerText = timeStr;
+        localStorage.setItem('last_sync_time', timeStr);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         initRealtimeListeners();
+        
+        // טעינת מצב הסנכרון
+        const savedSyncState = localStorage.getItem('auto_sync_active');
+        if (savedSyncState === 'true') {
+            autoSyncActive = true;
+            updateSyncUI(true);
+        }
+
+        // טעינת זמן סנכרון אחרון
+        const savedSyncTime = localStorage.getItem('last_sync_time');
+        if (savedSyncTime) {
+            document.getElementById('syncTimeDisplay').innerText = savedSyncTime;
+        }
     });
 
-    // הוספת שאלות
+    document.getElementById('btnExportSheets').addEventListener('click', () => {
+        const btn = document.getElementById('btnExportSheets');
+        const status = document.getElementById('sheetsStatus');
+        btn.disabled = true;
+        status.innerText = "⏳ מייצא נתונים...";
+        status.style.color = "orange";
+        
+        const allSubs = currentSData ? Object.values(currentSData) : [];
+        
+        fetch(SYNC_WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify(allSubs)
+        }).then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                status.innerText = "✅ נתונים יוצאו בהצלחה והסנכרון פעיל!";
+                status.style.color = "green";
+                autoSyncActive = true;
+                localStorage.setItem('auto_sync_active', 'true');
+                updateSyncUI(true);
+                updateLastSyncTime(); // עדכון הזמן
+                setTimeout(() => status.innerText = "", 5000);
+            } else {
+                status.innerText = "❌ שגיאה בייצוא הנתונים.";
+                status.style.color = "red";
+            }
+        }).catch(err => {
+            status.innerText = "❌ שגיאת תקשורת. ודא שהסקריפט זמין ופורסם כראוי.";
+            status.style.color = "red";
+        }).finally(() => {
+            btn.disabled = false;
+        });
+    });
+
+    document.getElementById('btnStopSync').addEventListener('click', () => {
+        autoSyncActive = false;
+        localStorage.setItem('auto_sync_active', 'false');
+        updateSyncUI(false);
+    });
+
+    function updateSyncUI(isActive) {
+        if (isActive) {
+            document.getElementById('syncIndicator').style.display = 'block';
+            document.getElementById('btnStopSync').style.display = 'inline-block';
+        } else {
+            document.getElementById('syncIndicator').style.display = 'none';
+            document.getElementById('btnStopSync').style.display = 'none';
+        }
+    }
+
     document.getElementById('addBtn').addEventListener('click', function() {
         const topicInput = document.getElementById('questionTopic');
         const qInput = document.getElementById('newQuestionText');
@@ -334,13 +429,11 @@
         });
     });
 
-    // כפתור בחר הכל
     document.getElementById('selectAllBtn').addEventListener('click', function() {
         const checkboxes = document.querySelectorAll('#topicsContainer input[type="checkbox"]');
         checkboxes.forEach(cb => cb.checked = true);
     });
 
-    // עדכון מערך הנושאים הפעילים לפיירבייס
     document.getElementById('setActiveTopicBtn').addEventListener('click', function() {
         const checkboxes = document.querySelectorAll('#topicsContainer input[type="checkbox"]:checked');
         const selectedTopics = Array.from(checkboxes).map(cb => cb.value);
@@ -348,7 +441,6 @@
         const statusBox = document.getElementById('activeTopicStatus');
         const activeTopicsRef = ref(database, 'settings/activeTopics');
 
-        // אם המורה לא סימן כלום, נשלח קוד מזהה של "ריק"
         let dataToSave = selectedTopics;
         if (selectedTopics.length === 0) {
             dataToSave = ["__NONE__"];
@@ -365,16 +457,14 @@
         });
     });
 
-    // מנגנון האזנה מרכזי
     function initRealtimeListeners() {
         document.getElementById('loader').style.display = 'block';
         
         const activeTopicsRef = ref(database, 'settings/activeTopics');
-        const oldActiveTopicRef = ref(database, 'settings/activeTopic'); // תאימות למערכת הישנה
+        const oldActiveTopicRef = ref(database, 'settings/activeTopic');
         const questionsRef = ref(database, 'questions');
         const submissionsRef = ref(database, 'submissions');
 
-        // מאזין למערך הנושאים החדש
         onValue(activeTopicsRef, (snapshot) => {
             const val = snapshot.val();
             if (val) {
@@ -382,7 +472,6 @@
                 updateDisplayAndCheckboxes();
                 renderTeacherTable();
             } else {
-                // אם אין מערך, מנסה למשוך את הנושא הבודד מהגרסה הקודמת
                 get(oldActiveTopicRef).then(snap => {
                    if(snap.exists()) {
                        currentActiveTopics = [snap.val()];
@@ -402,12 +491,36 @@
         });
 
         onValue(submissionsRef, (snapshot) => {
-            currentSData = snapshot.val();
+            currentSData = snapshot.val() || {};
+            const currentKeys = Object.keys(currentSData);
+
+            if (isInitialLoad) {
+                currentKeys.forEach(k => previousSubmissionsKeys.add(k));
+                isInitialLoad = false;
+            } else {
+                const newKeys = currentKeys.filter(k => !previousSubmissionsKeys.has(k));
+                
+                // סנכרון אוטומטי מבוסס משתנה מוסתר
+                if (autoSyncActive && newKeys.length > 0) {
+                    newKeys.forEach(k => {
+                        fetch(SYNC_WEB_APP_URL, {
+                            method: 'POST',
+                            body: JSON.stringify(currentSData[k])
+                        }).then(res => res.json()).then(data => {
+                            if (data.status === 'success') {
+                                updateLastSyncTime(); // עדכון הזמן בכל הצלחה של סנכרון אוטומטי
+                            }
+                        }).catch(err => console.error("שגיאת סנכרון לגוגל שיטס:", err));
+                    });
+                }
+                
+                currentKeys.forEach(k => previousSubmissionsKeys.add(k));
+            }
+
             renderTeacherTable();
         });
     }
     
-    // מעדכן את תיבות הסימון רק כשנוספו נושאים חדשים לגמרי למערכת
     function updateUniqueTopics() {
         if (!currentQData) return;
         const uniqueTopics = new Set();
@@ -442,7 +555,6 @@
         }
     }
 
-    // מעדכן את הטקסט והסימונים על המסך כשמגיע עדכון מפיירבייס
     function updateDisplayAndCheckboxes() {
         const displaySpan = document.getElementById('currentTopicDisplay');
         if (currentActiveTopics.includes("הכל")) {
@@ -463,13 +575,12 @@
         });
     }
 
-    // בניית טבלת המורה בהתאם לנושאים המסומנים - עם סינון כפילויות
     function renderTeacherTable() {
         const tbody = document.getElementById('answersBody');
         document.getElementById('loader').style.display = 'none';
 
         if (!currentQData) {
-            tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>לא הוגדרו שאלות במערכת.</td></tr>";
+            tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>לא הוגדרו שאלות במערכת.</td></tr>";
             return;
         }
 
@@ -488,7 +599,7 @@
         );
 
         if(visibleQuestions.length === 0) {
-             tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>אין שאלות שמוצגות כרגע לפי הסינון.</td></tr>";
+             tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>אין שאלות שמוצגות כרגע לפי הסינון.</td></tr>";
              return;
         }
 
@@ -496,13 +607,12 @@
             const tr = document.createElement('tr');
             
             let answersHtml = "";
-            let uniqueAnswers = {}; // אובייקט לאחסון תשובה אחת בלבד לכל חברותא
+            let uniqueAnswers = {};
 
             if (currentSData) {
                 for (let sKey in currentSData) {
                     const submission = currentSData[sKey];
                     if (submission.שאלה === q.text) {
-                        // אם אין עדיין תשובה לחברותא הזו, או שהתשובה הנוכחית מאוחרת יותר (לפי זמן)
                         if (!uniqueAnswers[submission.חברותא] || submission.timestamp > uniqueAnswers[submission.חברותא].timestamp) {
                             uniqueAnswers[submission.חברותא] = {
                                 תשובה: submission.תשובה,
@@ -512,25 +622,26 @@
                     }
                 }
                 
-                // יצירת ה-HTML מתוך האובייקט המסונן (כך שכל חברותא תופיע פעם אחת)
                 for (let chavrusa in uniqueAnswers) {
+                    let cleanAnswer = uniqueAnswers[chavrusa].תשובה.replace(/אני \((.*?)\):/g, '$1:');
+                    
                     answersHtml += `
-                        <div style="margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid #eee;">
-                            <strong>${chavrusa}:</strong> ${uniqueAnswers[chavrusa].תשובה}
+                        <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;">
+                            <div style="color: var(--blue-dark); font-weight: bold; margin-bottom: 4px; font-size: 15px;">👥 חברותא: ${chavrusa}</div>
+                            <div style="white-space: pre-wrap; padding-right: 12px; border-right: 3px solid var(--secondary-color); color: #333; line-height: 1.6; font-size: 15px; background-color: #f8fbff; padding-top: 6px; padding-bottom: 6px; border-radius: 4px 0 0 4px;">${cleanAnswer}</div>
                         </div>`;
                 }
             }
 
             tr.innerHTML = `
-                <td>${q.topic}</td>
-                <td style="font-weight:bold;">${q.text}</td>
-                <td colspan="2">${answersHtml || '<span style="color:#999;">אין עדיין תשובות</span>'}</td>
+                <td><span style="background: #e0f2fe; padding: 4px 8px; border-radius: 6px; font-size: 14px; color: var(--blue-dark); font-weight: bold;">${q.topic}</span></td>
+                <td style="font-weight:bold; font-size: 16px; color: #1e293b;">${q.text}</td>
+                <td>${answersHtml || '<span style="color:#94a3b8; font-style: italic;">אין עדיין תשובות</span>'}</td>
             `;
             tbody.appendChild(tr);
         });
     }
 </script>
 
-    
 </body>
 </html>
