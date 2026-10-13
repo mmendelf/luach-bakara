@@ -460,7 +460,10 @@
         try {
             await get(ref(database, 'syncState'));   // נתיב שזמין למורה בלבד: בדיקת הרשאה
         } catch (e) {
-            showGate(`החשבון ${user.email} אינו מורשה לנהל את המערכת. התחבר עם חשבון המורה.`, { logout: true });
+            const denied = /permission/i.test(e.code || e.message || '');
+            showGate(denied
+                ? `החשבון ${user.email} אינו מורשה לנהל את המערכת. בדוק שהמייל בחוקי ה-DB זהה בדיוק (באותיות קטנות) ושפרסמת את החוקים.`
+                : `שגיאה בבדיקת ההרשאה (${e.code || e.message}). בדוק חיבור לאינטרנט וכתובת ה-DB.`, { logout: true });
             await new Promise(() => {});
         }
         g('userEmail').textContent = user.email || '';
