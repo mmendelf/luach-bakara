@@ -4,257 +4,192 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>לוח בקרה למורה - כיתה ז'</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #2980b9;
-            --success-color: #27ae60;
-            --bg-color: #f4f6f7;
-            --card-bg: #ffffff;
-            --text-color: #333;
+            --blue:       #2563eb;
+            --blue-light: #60a5fa;
             --blue-dark:  #1e40af;
+            --green:      #059669;
+            --success:    #10b981;
+            --amber:      #f59e0b;
+            --red:        #ef4444;
+            --bg:         #f0f7ff;
+            --card:       #ffffff;
+            --text:       #1e293b;
+            --text-muted: #64748b;
+            --border:     #e2e8f0;
+            --radius:     16px;
+            --shadow:     0 4px 20px rgba(37,99,235,0.08);
         }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
+            font-family: 'Heebo', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
             padding: 20px;
         }
 
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1200px; margin: 0 auto; }
 
         header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: linear-gradient(135deg, var(--primary-color), #34495e);
-            color: white;
-            border-radius: 10px;
+            text-align: center; margin-bottom: 24px; padding: 24px;
+            background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 100%);
+            color: white; border-radius: var(--radius);
+            box-shadow: 0 8px 32px rgba(37,99,235,0.15);
         }
 
-        h1 { margin: 0; font-size: 24px; }
+        h1 { font-size: 28px; font-weight: 900; margin: 0; letter-spacing: 1px; }
+
+        /* Tabs System */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 10px; flex-wrap: wrap; }
+        .tab-btn {
+            background: transparent; border: none; padding: 12px 24px; font-size: 18px; font-weight: 700;
+            color: var(--text-muted); cursor: pointer; border-radius: 12px; transition: all 0.2s;
+        }
+        .tab-btn:hover { background: #e0f2fe; color: var(--blue); }
+        .tab-btn.active { background: var(--blue); color: white; box-shadow: 0 4px 12px rgba(37,99,235,0.2); }
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
         .card {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            background: var(--card); padding: 28px; border-radius: var(--radius);
+            box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 24px;
         }
 
-        .section-title {
-            font-size: 20px;
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--secondary-color);
-            padding-bottom: 8px;
-            margin-top: 0;
-            margin-bottom: 15px;
-        }
-
-        button {
-            background-color: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: opacity 0.3s ease;
-        }
-
-        button:hover { opacity: 0.9; }
-        button:disabled { background-color: #95a5a6; cursor: not-allowed; }
-        button.add-btn { background-color: var(--success-color); margin-top: 10px; }
-
+        .section-title { font-size: 22px; color: var(--blue-dark); margin-bottom: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--text); }
         input[type="text"], textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 16px;
-            font-family: inherit;
+            width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: 10px;
+            font-size: 16px; font-family: inherit; transition: all 0.2s; background: #f8fbff;
         }
+        input[type="text"]:focus, textarea:focus { border-color: var(--blue-light); outline: none; background: #fff; box-shadow: 0 0 0 3px rgba(96,165,250,0.15); }
+        textarea { height: 100px; resize: vertical; }
+
+        button.btn {
+            background: linear-gradient(135deg, var(--blue), var(--blue-light)); color: white;
+            border: none; padding: 12px 24px; font-size: 16px; font-weight: 700; border-radius: 10px;
+            cursor: pointer; transition: all 0.2s; font-family: inherit; box-shadow: 0 4px 12px rgba(37,99,235,0.2);
+        }
+        button.btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(37,99,235,0.3); }
+        button.btn-success { background: linear-gradient(135deg, var(--success), #34d399); box-shadow: 0 4px 12px rgba(16,185,129,0.2); }
+        button.btn-danger { background: linear-gradient(135deg, var(--red), #f87171); box-shadow: 0 4px 12px rgba(239,68,68,0.2); }
+        button.btn-icon { background: transparent; border: none; font-size: 18px; cursor: pointer; transition: transform 0.2s; box-shadow: none; padding: 4px; }
+        button.btn-icon:hover { transform: scale(1.2); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; border-radius: 10px; overflow: hidden; }
+        th, td { border: 1px solid var(--border); padding: 14px; text-align: right; }
+        th { background-color: var(--blue-dark); color: white; font-weight: 700; }
+        tr:nth-child(even) { background-color: #f8fafc; }
         
-        textarea { height: 120px; resize: vertical; line-height: 1.5; }
-
-        .topics-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 10px;
-            margin-bottom: 15px;
-        }
-
+        .topics-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 15px; }
         .topic-checkbox-label {
-            display: inline-flex;
-            align-items: center;
-            background: #f8fbff;
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 1px solid #bae6fd;
-            cursor: pointer;
-            font-weight: 600;
-            color: var(--blue-dark);
-            transition: all 0.2s ease;
+            display: inline-flex; align-items: center; background: #f8fbff; padding: 8px 16px;
+            border-radius: 8px; border: 1.5px solid #bae6fd; cursor: pointer; font-weight: 700; color: var(--blue-dark);
         }
-
-        .topic-checkbox-label:hover {
-            background: #e0f2fe;
-        }
-
-        .topic-checkbox-label input {
-            margin: 0 0 0 10px;
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 16px 12px;
-            text-align: right;
-            vertical-align: top;
-        }
-
-        th { background-color: var(--primary-color); color: white; }
-        tr:nth-child(even) { background-color: #fcfcfc; }
+        .topic-checkbox-label input { margin-right: 0; margin-left: 10px; width: 18px; height: 18px; }
         
-        .loader {
-            display: none;
-            text-align: center;
-            font-weight: bold;
-            color: var(--secondary-color);
-            margin: 15px 0;
-        }
+        .status-msg { font-weight: 700; margin-right: 15px; font-size: 15px; }
+        .live-indicator { color: var(--red); font-weight: 800; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        .status-msg {
-            font-weight: bold;
-            margin-top: 10px;
-            display: inline-block;
-            margin-right: 15px;
+        /* עיצוב כרטיסי החדרים */
+        .rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+        .room-card { 
+            background: #fff; border: 2px solid var(--border); border-radius: 14px; padding: 20px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-top: 5px solid var(--purple);
+            display: flex; flex-direction: column; justify-content: space-between;
         }
-        
-        .live-indicator {
-            color: var(--success-color);
-            font-size: 14px;
-            font-weight: bold;
-            animation: pulse 2s infinite;
-        }
+        .room-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .room-code { font-size: 22px; font-weight: 900; color: var(--purple); letter-spacing: 2px; }
+        .room-users { margin-bottom: 15px; font-size: 16px; line-height: 1.6; }
+        .room-user-chip { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 4px 12px; border-radius: 99px; font-size: 14px; font-weight: bold; margin-bottom: 6px; margin-left: 6px; }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
+        tr.group-row td { background: #eef4ff; font-weight: 800; color: var(--blue-dark); font-size: 16px; padding: 10px 14px; }
+        tr.group-row { cursor: pointer; }
+        tr.group-row:hover td { filter: brightness(.97); }
+        tr.group-row:focus-visible { outline: 3px solid var(--blue-light); outline-offset: -3px; }
+        tr.sub-row td { background: #f5f3ff; color: #6d28d9; font-size: 15px; padding-right: 40px; }
+        .grp-head { display: flex; align-items: center; gap: 10px; }
+        .grp-caret { width: 18px; flex: none; }
+        .grp-meta { font-size: 13px; font-weight: 700; color: var(--text-muted); background: rgba(255,255,255,.7); border-radius: 99px; padding: 2px 10px; }
+        .login-gate { position: fixed; inset: 0; background: rgba(15,23,42,.92); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-gate[hidden], .user-bar[hidden] { display: none; }
+        .login-box { background: #fff; border-radius: 20px; padding: 32px; max-width: 420px; width: 100%; text-align: center; display: flex; flex-direction: column; gap: 14px; }
+        .login-box h2 { color: var(--blue-dark); }
+        .user-bar { position: fixed; top: 10px; left: 12px; z-index: 800; background: #fff; border: 1.5px solid var(--border); border-radius: 99px; padding: 6px 14px; font-size: 13px; font-weight: 700; display: flex; gap: 10px; align-items: center; }
+        .grp-actions { margin-inline-start: auto; display: flex; gap: 4px; }
+        .grp-sel { width: 20px; height: 20px; flex: none; accent-color: var(--blue); }
+        .sel-wrap { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; margin: 0; font-weight: inherit; }
+        .sel-cb { width: 18px; height: 18px; margin-top: 6px; flex: none; accent-color: var(--blue); }
+        .sel-bar { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 900; display: flex; gap: 10px; align-items: center; background: #1e293b; color: #fff; padding: 10px 18px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.35); font-weight: 700; flex-wrap: wrap; justify-content: center; }
+        .sel-bar[hidden] { display: none; }
+        .sel-bar .btn { padding: 8px 16px; font-size: 15px; }
+        .muted { color: var(--text-muted); font-weight: 600; }
+        .session-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+        .session-bar label { margin: 0; font-weight: 800; }
+        .session-bar select { padding: 8px 12px; border-radius: 10px; border: 2px solid var(--border); font-family: inherit; font-size: 15px; font-weight: 700; }
+        .room-progress { height: 10px; background: #e5e7eb; border-radius: 99px; overflow: hidden; margin-top: 12px; }
+        .room-progress-bar { height: 100%; background: linear-gradient(90deg, var(--success), #34d399); transition: width .4s; }
+        .room-progress-text { font-size: 13px; font-weight: 700; color: var(--text-muted); margin-top: 6px; }
+        .room-card.idle { border: 2px solid #f59e0b; background: #fffbeb; }
+        details.import-box { margin-top: 18px; background: #f8fbff; border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 16px; }
+        details.import-box summary { cursor: pointer; font-weight: 800; color: var(--blue-dark); }
+        .fb-line { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; font-size: 14px; font-weight: 600; }
+        button.fb-btn { all: unset; cursor: pointer; font-size: 13px; font-weight: 800; color: var(--blue-dark); background: #e0f2fe; padding: 4px 12px; border-radius: 99px; }
+        .fb-badge { padding: 3px 10px; border-radius: 99px; font-weight: 800; background: #eff6ff; }
+        .fb-badge.fb-great { background: #fef9c3; } .fb-badge.fb-good { background: #d1fae5; } .fb-badge.fb-improve { background: #ffedd5; }
+        .fb-status { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+        button.fb-s { padding: 8px 16px; border-radius: 10px; border: 2px solid var(--border); background: #fff; font-weight: 800; cursor: pointer; font-family: inherit; }
+        button.fb-s.on { background: #dbeafe; border-color: var(--blue); }
+        .topic-group { background: #f8fbff; border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 14px; }
+        .topic-main { font-size: 17px; }
+        .sub-list { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; padding-right: 26px; }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
+        /* --- הודעות, חלון עריכה, נייד --- */
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 12px 22px; border-radius: 12px; color: #fff; font-weight: 700; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,.2); max-width: 90vw; }
+        .toast.ok { background: #059669; } .toast.err { background: #dc2626; }
+        dialog.dlg { border: none; border-radius: 18px; padding: 28px; width: min(560px, 92vw); box-shadow: 0 20px 60px rgba(0,0,0,.3); font-family: inherit; direction: rtl; margin: auto; }
+        dialog.dlg::backdrop { background: rgba(15,23,42,.55); }
+        dialog.dlg h3 { color: var(--blue-dark); margin-bottom: 16px; }
+        .dialog-actions { display: flex; gap: 10px; margin-top: 8px; }
+        @media (max-width: 700px) { body { padding: 12px 8px; } .rooms-grid { grid-template-columns: 1fr !important; } }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>לוח בקרה ומעקב למורה - כיתה ז'</h1>
+        <h1>👨‍🏫 לוח בקרה ומעקב - כיתה ז'</h1>
     </header>
 
-    <div>
-        <div class="card" style="border-right: 5px solid var(--success-color);">
-            <h2 class="section-title">הוספת שאלות ללמידה</h2>
-            
-            <div class="form-group">
-                <label for="questionTopic">נושא השאלות:</label>
-                <input type="text" id="questionTopic" placeholder="לדוגמה: הלכות שבת - סימן א' (אם יושאר ריק, יישמר כ'כללי')">
-            </div>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-live', this)">🔴 תשובות בלייב</button>
+        <button class="tab-btn" onclick="switchTab('tab-rooms', this)">🏠 ניהול חדרים</button>
+        <button class="tab-btn" onclick="switchTab('tab-manage', this)">📝 ניהול שאלות</button>
+        <button class="tab-btn" onclick="switchTab('tab-settings', this)">⚙️ שליטה וסנכרון</button>
+    </div>
 
-            <div class="form-group">
-                <label for="newQuestionText">תוכן השאלות:</label>
-                <p style="margin-top:0; color:#555; font-size:14px; margin-bottom: 10px;">
-                    הקלידו כאן את השאלות לחברותות. <br>
-                    <strong>💡 טיפ:</strong> ניתן להזין מספר שאלות יחד. כל <strong>שורה חדשה</strong> (לחיצה על Enter) תיחשב כשאלה נפרדת ותשוייך לנושא שהגדרת למעלה.
-                </p>
-                <textarea id="newQuestionText" placeholder="לדוגמה:
-שאלה 1: מה הדין במקרה ש...?
-שאלה 2: הסבירו את טעם ההלכה..."></textarea>
-            </div>
-            
-            <div>
-                <button id="addBtn" class="add-btn">➕ שלח שאלות למאגר</button>
-                <span id="addQuestionStatus" class="status-msg"></span>
-            </div>
-        </div>
-
-        <div class="card" style="border-right: 5px solid var(--secondary-color);">
-            <h2 class="section-title">⚙️ בחירת נושאים להצגה לתלמידים</h2>
-            <p style="margin-top:0; color:#555; font-size:14px; margin-bottom: 15px;">
-                סמנו בתיבות אילו נושאים ברצונכם להציג כעת לתלמידים (אפשר לסמן כמה במקביל). לחצו על "עדכן נושאים" כדי לשלוח את השינוי למסכי התלמידים.
-            </p>
-            
-            <div class="form-group">
-                <div id="topicsContainer" class="topics-grid">
-                    <span style="color:#777;">טוען נושאים...</span>
-                </div>
-            </div>
-            
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <button id="setActiveTopicBtn">✅ עדכן נושאים פעילים לתלמידים</button>
-                <button id="selectAllBtn" style="background-color: #1abc9c;">בחר הכל</button>
-                <span id="activeTopicStatus" class="status-msg"></span>
-            </div>
-            <p style="margin-top: 15px; font-weight: bold;">
-                הנושאים שמוצגים כעת לתלמידים: <span id="currentTopicDisplay" style="color: var(--success-color);">טוען...</span>
-            </p>
-        </div>
-
-        <div class="card" style="border-right: 5px solid #10b981;">
-            <h2 class="section-title">📊 סנכרון לגוגל שיטס (Google Sheets)</h2>
-            <p style="margin-top:0; color:#555; font-size:14px; margin-bottom: 15px;">
-                המערכת מקושרת מאחורי הקלעים לגוגל שיטס. לחץ על "ייצא הכל" כדי לשלוח את כל הנתונים הקיימים לטבלה. לאחר מכן, <strong>כל תשובה חדשה תעודכן אוטומטית</strong> (כל עוד חלון זה פתוח בדפדפן).
-            </p>
-            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;">
-                <button id="btnExportSheets" style="background-color: #10b981;">🚀 ייצא הכל והפעל סנכרון</button>
-                <button id="btnStopSync" style="background-color: #ef4444; display: none;">🛑 עצור סנכרון</button>
-                <span id="sheetsStatus" class="status-msg"></span>
-            </div>
-            
-            <div id="lastSyncTime" style="font-size: 14px; color: #475569; margin-top: 5px; font-weight: 600;">
-                סנכרון אחרון לשיטס: <span id="syncTimeDisplay" style="font-weight: normal; color: #1e293b;">טרם בוצע מאז פתיחת הדפדפן</span>
-            </div>
-
-            <div id="syncIndicator" style="display:none; color: var(--success-color); font-weight: bold; font-size: 14px; margin-top: 15px; background: #ecfdf5; padding: 10px; border-radius: 8px;">
-                <span class="live-indicator">●</span> הסנכרון האוטומטי פעיל. תשובות חדשות נשלחות ברגע זה לגוגל שיטס.
-            </div>
-        </div>
-
-        <div class="card">
+    <!-- כרטיסיית תשובות בלייב -->
+    <div id="tab-live" class="tab-content active">
+        <div class="card" style="border-right: 5px solid var(--blue);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2 class="section-title" style="border:none; margin:0; padding:0;">
-                    תשובות התלמידים <span class="live-indicator">● מתעדכן בזמן אמת</span>
-                </h2>
+                <h2 class="section-title" style="margin:0;">תשובות התלמידים <span class="live-indicator" style="font-size:16px; margin-right:10px;">● מתעדכן בלייב</span></h2>
             </div>
-            
-            <div id="loader" class="loader">מושך נתונים...</div>
-
+            <div class="session-bar">
+                <label for="sessionSelect">📅 שיעור:</label>
+                <select id="sessionSelect"></select>
+                <button type="button" id="btnNewSession" class="btn" style="padding:8px 16px; font-size:15px;">➕ שיעור חדש</button>
+            </div>
+            <div id="loaderLive" style="text-align:center; color:var(--blue); font-weight:bold;">מושך נתונים...</div>
             <div style="overflow-x: auto;">
                 <table id="answersTable">
                     <thead>
@@ -265,381 +200,1049 @@
                         </tr>
                     </thead>
                     <tbody id="answersBody">
-                        <tr>
-                            <td colspan="3" style="text-align:center;">ממתין לנתונים...</td>
-                        </tr>
+                        <tr><td colspan="3" style="text-align:center;">ממתין לנתונים...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
+    </div>
 
+    <!-- כרטיסיית ניהול חדרים -->
+    <div id="tab-rooms" class="tab-content">
+        <div class="card" style="border-right: 5px solid var(--purple);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <h2 class="section-title" style="margin:0;">מצב החדרים בכיתה <span class="live-indicator" style="font-size:16px; margin-right:10px;">● בלייב</span></h2>
+                <button id="btnCreateRoomTeacher" class="btn" style="background: var(--purple); box-shadow: 0 4px 12px rgba(124,58,237,0.2);">➕ צור חדר חדש לתלמידים</button>
+                <button id="btnCleanRooms" class="btn" style="background: var(--text-muted);">🧹 נקה חדרים ישנים</button>
+            </div>
+            <p style="color:var(--text-muted); font-weight:600; margin-top:10px;">כאן תוכל לראות אילו תלמידים נמצאים כרגע באיזה חדר, ולסגור חדרים מרחוק.</p>
+            
+            <div id="roomsContainer" class="rooms-grid">
+                <div style="text-align:center; grid-column: 1 / -1; padding: 40px; color: var(--text-muted); font-size: 18px; font-weight: bold;">
+                    אין כרגע חדרים פעילים במערכת.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- כרטיסיית ניהול שאלות -->
+    <div id="tab-manage" class="tab-content">
+        <div class="card" style="border-right: 5px solid var(--success);">
+            <h2 class="section-title">➕ הוספת שאלות ללמידה</h2>
+            <div class="form-group">
+                <label>נושא השאלות:</label>
+                <input type="text" id="questionTopic" list="topicList" autocomplete="off" placeholder="לדוגמה: הלכות שבת (אם יושאר ריק, יישמר כ'כללי')">
+            </div>
+            <div class="form-group">
+                <label>תת-נושא (רשות, למשל: סימן ג'):</label>
+                <input type="text" id="questionSub" list="subList" autocomplete="off" placeholder="לדוגמה: סימן ג'">
+                <datalist id="topicList"></datalist><datalist id="subList"></datalist>
+            </div>
+            <div class="form-group">
+                <label>תוכן השאלות (כל שורה תישמר כשאלה נפרדת):</label>
+                <textarea id="newQuestionText" placeholder="שאלה 1: מה הדין...&#10;שאלה 2: הסבירו..."></textarea>
+            </div>
+            <button id="addBtn" class="btn btn-success">שלח למאגר</button>
+            <span id="addQuestionStatus" class="status-msg"></span>
+            <details class="import-box">
+                <summary>📋 ייבוא רשימה מובנית (נושאים, תתי-נושאים ושאלות בבת אחת)</summary>
+                <p class="muted">שורה שמתחילה ב-# היא נושא, ב-## היא תת-נושא, וכל שורה אחרת היא שאלה.</p>
+                <textarea id="importText" rows="8" placeholder="# שבח יקר&#10;## סימן ג'&#10;מה הדין...&#10;הסבירו...&#10;## סימן ד'&#10;שאלה נוספת..."></textarea>
+                <div style="margin-top:10px; display:flex; gap:12px; align-items:center;">
+                    <button type="button" id="btnImport" class="btn btn-success">📥 ייבא שאלות</button>
+                    <span id="importStatus" class="status-msg"></span>
+                </div>
+            </details>
+        </div>
+
+        <div class="card" style="border-right: 5px solid var(--amber);">
+            <h2 class="section-title">📚 מאגר השאלות הקיים</h2>
+            <div id="loaderQuestions" style="text-align:center; color:var(--blue); font-weight:bold;">טוען שאלות...</div>
+            <table id="questionsTable" style="display:none;">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">נושא</th>
+                        <th style="width: 65%;">השאלה</th>
+                        <th style="width: 15%; text-align:center;">פעולות</th>
+                    </tr>
+                </thead>
+                <tbody id="questionsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- כרטיסיית שליטה וסנכרון -->
+    <div id="tab-settings" class="tab-content">
+        <div class="card" style="border-right: 5px solid var(--blue-dark);">
+            <h2 class="section-title">👁️ בחירת נושאים להצגה לתלמידים</h2>
+            <p style="color:var(--text-muted); font-weight:600; margin-bottom:15px;">
+                סמנו אילו נושאים יוצגו כעת במסכי התלמידים.
+            </p>
+            <div id="topicsContainer" class="topics-grid"><span style="color:#777;">טוען נושאים...</span></div>
+            <div style="display: flex; gap: 10px; align-items: center; margin-top:15px;">
+                <button id="setActiveTopicBtn" class="btn">✅ עדכן נושאים פעילים</button>
+                <button id="selectAllBtn" class="btn" style="background:var(--text-muted);">בחר הכל</button>
+                <span id="activeTopicStatus" class="status-msg"></span>
+            </div>
+            <p style="margin-top: 15px; font-weight: 700;">
+                מוצג כעת לתלמידים: <span id="currentTopicDisplay" style="color: var(--success);">טוען...</span>
+            </p>
+        </div>
+
+        <div class="card" style="border-right: 5px solid var(--success);">
+            <h2 class="section-title">📊 סנכרון ל-Google Sheets</h2>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                <button id="btnExportSheets" class="btn btn-success">🚀 ייצא הכל והפעל סנכרון</button>
+                <button id="btnStopSync" class="btn btn-danger" style="display: none;">🛑 עצור סנכרון</button>
+                <span id="sheetsStatus" class="status-msg"></span>
+            </div>
+            <div style="font-weight: 600; color: var(--text-muted);">
+                סנכרון אחרון: <span id="syncTimeDisplay" style="color:var(--text);">טרם בוצע מאז פתיחת הדפדפן</span>
+            </div>
+            <div id="syncIndicator" style="display:none; margin-top: 15px; background: #ecfdf5; padding: 12px; border-radius: 10px; color: var(--success); font-weight: 800;">
+                <span class="live-indicator">●</span> הסנכרון האוטומטי פעיל.
+            </div>
+        </div>
     </div>
 </div>
 
+<div id="loginGate" class="login-gate" hidden>
+    <div class="login-box">
+        <h2>🔐 כניסת מורה</h2>
+        <p id="loginMsg"></p>
+        <button type="button" id="btnLogin" class="btn">התחבר עם Google</button>
+        <button type="button" id="btnLogoutGate" class="btn" style="background:var(--text-muted)">התנתק</button>
+    </div>
+</div>
+<div id="userBar" class="user-bar" hidden>
+    <span>👤 <span id="userEmail"></span></span>
+    <button type="button" id="btnLogoutBar" class="fb-btn">התנתק</button>
+</div>
+
+<dialog class="dlg" id="editDialog" aria-labelledby="editDialogTitle">
+    <form id="editForm" method="dialog">
+        <h3 id="editDialogTitle">✏️ עריכת שאלה</h3>
+        <div class="form-group">
+            <label for="editTopic">נושא</label>
+            <input type="text" id="editTopic">
+        </div>
+        <div class="form-group">
+            <label for="editSub">תת-נושא (רשות)</label>
+            <input type="text" id="editSub" placeholder="לדוגמה: סימן ג'">
+        </div>
+        <div class="form-group">
+            <label for="editText">שאלה</label>
+            <textarea id="editText" rows="4"></textarea>
+        </div>
+        <div class="dialog-actions">
+            <button type="submit" class="btn btn-success">💾 שמור</button>
+            <button type="button" id="editCancel" class="btn" style="background:var(--text-muted)">ביטול</button>
+        </div>
+    </form>
+</dialog>
+
+<dialog class="dlg" id="mvDialog" aria-labelledby="mvTitle">
+    <form id="mvForm" method="dialog">
+        <h3 id="mvTitle"></h3>
+        <p id="mvNote" class="muted"></p>
+        <div class="form-group" id="mvTopicG">
+            <label for="mvTopic">נושא</label>
+            <input type="text" id="mvTopic" list="topicList" autocomplete="off">
+        </div>
+        <div class="form-group" id="mvSubG">
+            <label for="mvSub">תת-נושא (רשות)</label>
+            <input type="text" id="mvSub" list="subList" autocomplete="off">
+        </div>
+        <div class="dialog-actions">
+            <button type="submit" class="btn btn-success">💾 אישור</button>
+            <button type="button" id="mvCancel" class="btn" style="background:var(--text-muted)">ביטול</button>
+        </div>
+    </form>
+</dialog>
+
+<dialog class="dlg" id="fbDialog" aria-labelledby="fbTitle">
+    <form id="fbForm" method="dialog">
+        <h3 id="fbTitle">💬 משוב לחברותא</h3>
+        <div id="fbQuestion" class="muted"></div>
+        <div class="fb-status" id="fbStatus">
+            <button type="button" class="fb-s" data-s="great">🌟 מצוין</button>
+            <button type="button" class="fb-s" data-s="good">✅ יפה</button>
+            <button type="button" class="fb-s" data-s="improve">🔁 כדאי לחזק</button>
+        </div>
+        <div class="form-group">
+            <label for="fbNote">הערה לחברותא (רשות)</label>
+            <textarea id="fbNote" rows="3" maxlength="500"></textarea>
+        </div>
+        <div class="dialog-actions">
+            <button type="submit" class="btn btn-success">📤 שלח לחברותא</button>
+            <button type="button" id="fbDelete" class="btn btn-danger">🗑️ מחק משוב</button>
+            <button type="button" id="fbCancel" class="btn" style="background:var(--text-muted)">ביטול</button>
+        </div>
+    </form>
+</dialog>
+
+<dialog class="dlg" id="sessDialog" aria-labelledby="sessTitle">
+    <form id="sessForm" method="dialog">
+        <h3 id="sessTitle">📅 שיעור חדש</h3>
+        <div class="form-group">
+            <label for="sessName">שם השיעור</label>
+            <input type="text" id="sessName">
+        </div>
+        <p class="muted">הגשות חדשות ישויכו לשיעור הזה. הגשות קודמות נשארות בשיעורים שלהן.</p>
+        <div class="dialog-actions">
+            <button type="submit" class="btn btn-success">▶️ התחל שיעור</button>
+            <button type="button" id="sessCancel" class="btn" style="background:var(--text-muted)">ביטול</button>
+        </div>
+    </form>
+</dialog>
+
+<div id="selBar" class="sel-bar" hidden>
+    <span id="selCount"></span>
+    <button type="button" class="btn" data-act="sel-move">📂 העבר</button>
+    <button type="button" class="btn btn-danger" data-act="sel-del">🗑️ מחק</button>
+    <button type="button" class="btn" style="background:var(--text-muted)" data-act="sel-clear">ביטול</button>
+</div>
+
+<script>
+    // מעבר בין לשוניות (הכפתור מועבר כפרמטר, בלי event גלובלי)
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+        if (window.updateSelBar) window.updateSelBar();
+    }
+</script>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, set, get } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+    import { getDatabase, ref, push, onValue, onChildAdded, set, get, update, remove, runTransaction } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
-    // הקישור החדש שביקשת
     const SYNC_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxFJM5_YUiYhyusuhcQ-zrg-qwz-wc-ngHnwzezTD7WeGT-8AUF0qJnAuld3ZsFl2_O6Q/exec";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBVWWNVMysC7_lkmUzb8ycsN1iON7T8gXI",
         authDomain: "limud-e8dfe.firebaseapp.com",
         databaseURL: "https://limud-e8dfe-default-rtdb.firebaseio.com/",
-        projectId: "limud-e8dfe",
-        storageBucket: "limud-e8dfe.firebasestorage.app",
-        messagingSenderId: "867875480154",
-        appId: "1:867875480154:web:0933c2f66dde582ab3ee63"
+        projectId: "limud-e8dfe"
     };
 
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
+    // ---------- התחברות מורה (Google) ----------
+    // true = נדרשת התחברות עם חשבון המורה (מתאים לחוקי DB שמגבילים כתיבה למורה בלבד).
+    // false = הלוח פתוח בלי התחברות, כמו קודם (רק אם חוקי ה-DB פתוחים).
+    const REQUIRE_TEACHER_LOGIN = true;
+    if (REQUIRE_TEACHER_LOGIN) {
+        const auth = getAuth(app);
+        const g = id => document.getElementById(id);
+        const showGate = (msg, { login = false, logout = false } = {}) => {
+            g('loginGate').hidden = false;
+            g('loginMsg').textContent = msg;
+            g('btnLogin').style.display = login ? '' : 'none';
+            g('btnLogoutGate').style.display = logout ? '' : 'none';
+        };
+        const doLogout = async () => { await signOut(auth); location.reload(); };
+        g('btnLogin').addEventListener('click', async () => {
+            try { await signInWithPopup(auth, new GoogleAuthProvider()); location.reload(); }
+            catch (e) { g('loginMsg').textContent = 'ההתחברות נכשלה (' + (e.code || e.message) + ')'; }
+        });
+        g('btnLogoutGate').addEventListener('click', doLogout);
+        g('btnLogoutBar').addEventListener('click', doLogout);
+
+        const user = await new Promise(res => onAuthStateChanged(auth, u => res(u)));
+        if (!user) {
+            showGate('התחבר עם חשבון המורה כדי לנהל את המערכת.', { login: true });
+            await new Promise(() => {});   // עוצרים כאן: שאר הלוח לא נטען בלי התחברות
+        }
+        try {
+            await get(ref(database, 'syncState'));   // נתיב שזמין למורה בלבד: בדיקת הרשאה
+        } catch (e) {
+            showGate(`החשבון ${user.email} אינו מורשה לנהל את המערכת. התחבר עם חשבון המורה.`, { logout: true });
+            await new Promise(() => {});
+        }
+        g('userEmail').textContent = user.email || '';
+        g('userBar').hidden = false;
+    }
+
+    // ---------- כלי עזר ----------
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const SEP = '||';   // מפריד בין נושא לתת-נושא בבחירת הנושאים הפעילים
+    const cmp = (a, b) => String(a).localeCompare(String(b), 'he', { numeric: true });
+    const qTopic = q => q.נושא || 'כללי';
+    const qSub = q => q.תת_נושא || '';
+    const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+
+    function toast(msg, ok = true, ms = 3500) {
+        const t = document.createElement('div');
+        t.className = 'toast ' + (ok ? 'ok' : 'err');
+        t.setAttribute('role', 'status');
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), ms);
+    }
+
+    function generateRandomCode() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        return Array.from({ length: 5 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
+    }
+
+    // ---------- מצב ----------
     let currentQData = null;
     let currentSData = null;
+    let activeRoomsData = null;
     let currentActiveTopics = ["הכל"];
-    let knownTopicsStr = "";
-    
-    let previousSubmissionsKeys = new Set();
-    let isInitialLoad = true;
+    // שאלה פעילה אם כל הנושאים פעילים, או הנושא כולו, או תת-הנושא הספציפי שלה
+    const isActiveQ = (topic, sub) => currentActiveTopics.includes("הכל") || currentActiveTopics.includes(topic) || currentActiveTopics.includes(topic + SEP + sub);
+    function topicTree() {
+        const t = {};
+        Object.values(currentQData || {}).forEach(q => { (t[qTopic(q)] ||= new Set()).add(qSub(q)); });
+        return t;
+    }
+    let knownSig = null;
+    let currentFData = {}, sessionsData = {}, currentSession = null;
+    let viewSession = 'auto';   // auto (השיעור הנוכחי) | all | none | מזהה שיעור
+    const selIds = new Set();
     let autoSyncActive = false;
 
-    // פונקציה לעדכון זמן הסנכרון בתצוגה
+    // ---------- פעולות על שאלות וחדרים (event delegation, בלי onclick inline) ----------
+    let editingId = null;
+
+    document.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-act]');
+        if (!btn) return;
+        const id = btn.dataset.id;
+
+        if (btn.dataset.act === 'del-q') {
+            if (!confirm("האם אתה בטוח שברצונך למחוק שאלה זו לצמיתות?")) return;
+            try { await remove(ref(database, `questions/${id}`)); } catch (err) { toast("שגיאה במחיקה", false); }
+        }
+        else if (btn.dataset.act === 'edit-q') {
+            const q = currentQData?.[id];
+            if (!q) return;
+            editingId = id;
+            $('editTopic').value = q.נושא || 'כללי';
+            $('editSub').value = q.תת_נושא || '';
+            $('editText').value = q.שאלה || '';
+            $('editDialog').showModal();
+        }
+        else if (btn.dataset.act === 'close-room') {
+            if (!confirm(`האם אתה בטוח שברצונך למחוק לחלוטין את חדר ${id} ולנתק את התלמידים?`)) return;
+            try { await remove(ref(database, `rooms/${id}`)); } catch (err) { toast("שגיאה בסגירת החדר", false); }
+        }
+    });
+
+    $('editCancel').addEventListener('click', () => $('editDialog').close());
+    $('editForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newText = $('editText').value.trim();
+        if (!editingId || !newText) return;
+        try {
+            // update (ולא set) - שומר את שאר השדות, כולל ה-timestamp
+            await update(ref(database, `questions/${editingId}`), {
+                נושא: $('editTopic').value.trim() || 'כללי',
+                תת_נושא: $('editSub').value.trim() || null,   // null = מחיקת השדה
+                שאלה: newText
+            });
+            $('editDialog').close();
+            toast("✅ השאלה עודכנה");
+        } catch (err) { toast("שגיאה בעריכה", false); }
+    });
+
+    $('btnCreateRoomTeacher').addEventListener('click', async () => {
+        const newCode = generateRandomCode();
+        try {
+            await set(ref(database, `rooms/${newCode}`), { created_by_teacher: true, createdAt: Date.now() });
+            navigator.clipboard?.writeText(newCode).catch(() => {});
+            toast(`✅ חדר חדש נוצר! קוד: ${newCode} (הועתק ללוח)`, true, 8000);
+        } catch (e) {
+            toast("❌ אירעה שגיאה ביצירת החדר.", false);
+        }
+    });
+
+    // ניקוי חדרים ישנים: מעל 24 שעות, או ריקים (בלי תלמידים) שנוצרו לפני יותר משעתיים
+    $('btnCleanRooms').addEventListener('click', async () => {
+        const now = Date.now();
+        const stale = Object.entries(activeRoomsData || {}).filter(([, r]) => {
+            const age = r.createdAt ? now - r.createdAt : Infinity;
+            const empty = !r.users || Object.keys(r.users).length === 0;
+            return age > 24 * 3600e3 || (empty && age > 2 * 3600e3);
+        }).map(([code]) => code);
+        if (stale.length === 0) { toast("אין חדרים ישנים לניקוי"); return; }
+        if (!confirm(`למחוק ${stale.length} חדרים ישנים/ריקים?`)) return;
+        try {
+            await update(ref(database, 'rooms'), Object.fromEntries(stale.map(c => [c, null])));
+            toast(`🧹 נמחקו ${stale.length} חדרים`);
+        } catch (e) { toast("שגיאה בניקוי", false); }
+    });
+
+    // ---------- סנכרון ל-Google Sheets ----------
+    // המצב נשמר ב-DB (לא ב-localStorage), וכל הגשה נתבעת בטרנזקציה: גם עם כמה טאבים פתוחים היא תישלח פעם אחת,
+    // וגם הגשות שהגיעו כשהלוח היה סגור יסונכרנו בפתיחה הבאה.
+    const syncReady = new Promise(resolve => {
+        onValue(ref(database, 'settings/autoSync'), snap => {
+            autoSyncActive = snap.val() === true;
+            updateSyncUI(autoSyncActive);
+            resolve();
+        });
+    });
+
     function updateLastSyncTime() {
-        const now = new Date();
-        const timeStr = now.toLocaleString('he-IL');
-        document.getElementById('syncTimeDisplay').innerText = timeStr;
+        const timeStr = new Date().toLocaleString('he-IL');
+        $('syncTimeDisplay').innerText = timeStr;
         localStorage.setItem('last_sync_time', timeStr);
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        initRealtimeListeners();
-        
-        // טעינת מצב הסנכרון
-        const savedSyncState = localStorage.getItem('auto_sync_active');
-        if (savedSyncState === 'true') {
-            autoSyncActive = true;
-            updateSyncUI(true);
-        }
-
-        // טעינת זמן סנכרון אחרון
-        const savedSyncTime = localStorage.getItem('last_sync_time');
-        if (savedSyncTime) {
-            document.getElementById('syncTimeDisplay').innerText = savedSyncTime;
-        }
-    });
-
-    document.getElementById('btnExportSheets').addEventListener('click', () => {
-        const btn = document.getElementById('btnExportSheets');
-        const status = document.getElementById('sheetsStatus');
-        btn.disabled = true;
-        status.innerText = "⏳ מייצא נתונים...";
-        status.style.color = "orange";
-        
-        const allSubs = currentSData ? Object.values(currentSData) : [];
-        
-        fetch(SYNC_WEB_APP_URL, {
-            method: 'POST',
-            body: JSON.stringify(allSubs)
-        }).then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                status.innerText = "✅ נתונים יוצאו בהצלחה והסנכרון פעיל!";
-                status.style.color = "green";
-                autoSyncActive = true;
-                localStorage.setItem('auto_sync_active', 'true');
-                updateSyncUI(true);
-                updateLastSyncTime(); // עדכון הזמן
-                setTimeout(() => status.innerText = "", 5000);
-            } else {
-                status.innerText = "❌ שגיאה בייצוא הנתונים.";
-                status.style.color = "red";
-            }
-        }).catch(err => {
-            status.innerText = "❌ שגיאת תקשורת. ודא שהסקריפט זמין ופורסם כראוי.";
-            status.style.color = "red";
-        }).finally(() => {
-            btn.disabled = false;
-        });
-    });
-
-    document.getElementById('btnStopSync').addEventListener('click', () => {
-        autoSyncActive = false;
-        localStorage.setItem('auto_sync_active', 'false');
-        updateSyncUI(false);
-    });
-
     function updateSyncUI(isActive) {
-        if (isActive) {
-            document.getElementById('syncIndicator').style.display = 'block';
-            document.getElementById('btnStopSync').style.display = 'inline-block';
+        $('syncIndicator').style.display = isActive ? 'block' : 'none';
+        $('btnStopSync').style.display = isActive ? 'inline-block' : 'none';
+    }
+
+    async function syncSubmission(key, data) {
+        const claim = await runTransaction(ref(database, `syncState/${key}`), cur => cur ? undefined : Date.now());
+        if (!claim.committed) return;                       // טאב אחר כבר טיפל בה
+        try {
+            const res = await fetch(SYNC_WEB_APP_URL, { method: 'POST', body: JSON.stringify(data) });
+            const out = await res.json();
+            if (out.status !== 'success') throw new Error('sync failed');
+            updateLastSyncTime();
+        } catch (err) {
+            console.error(err);
+            remove(ref(database, `syncState/${key}`));      // משחררים כדי שיישלח שוב בפעם הבאה
+        }
+    }
+
+    onChildAdded(ref(database, 'submissions'), async snap => {
+        await syncReady;
+        if (autoSyncActive) syncSubmission(snap.key, snap.val());
+    });
+
+    $('btnExportSheets').addEventListener('click', async () => {
+        const btn = $('btnExportSheets');
+        const status = $('sheetsStatus');
+        btn.disabled = true; status.innerText = "⏳ מייצא..."; status.style.color = "orange";
+        const entries = currentSData ? Object.entries(currentSData) : [];
+        try {
+            const res = await fetch(SYNC_WEB_APP_URL, { method: 'POST', body: JSON.stringify(entries.map(([, v]) => v)) });
+            const data = await res.json();
+            if (data.status !== 'success') throw new Error('export failed');
+            const now = Date.now();
+            const claims = Object.fromEntries(entries.map(([k]) => [k, now]));
+            if (entries.length) await update(ref(database, 'syncState'), claims);
+            await set(ref(database, 'settings/autoSync'), true);
+            status.innerText = "✅ נתונים יוצאו והסנכרון פעיל!"; status.style.color = "green";
+            updateLastSyncTime();
+            setTimeout(() => status.innerText = "", 5000);
+        } catch (e) {
+            status.innerText = "❌ שגיאה בייצוא."; status.style.color = "red";
+        }
+        btn.disabled = false;
+    });
+
+    $('btnStopSync').addEventListener('click', () => set(ref(database, 'settings/autoSync'), false));
+
+    const savedSyncTime = localStorage.getItem('last_sync_time');
+    if (savedSyncTime) $('syncTimeDisplay').innerText = savedSyncTime;
+
+    // ---------- הוספת שאלות ----------
+    function refreshSubList(topic) {
+        const t = topic ?? $('questionTopic').value.trim();
+        const subs = [...(topicTree()[t] || [])].filter(Boolean).sort(cmp);
+        $('subList').innerHTML = subs.map(s => `<option value="${esc(s)}">`).join('');
+    }
+    function refreshDatalists() {
+        $('topicList').innerHTML = Object.keys(topicTree()).sort(cmp).map(t => `<option value="${esc(t)}">`).join('');
+        refreshSubList();
+    }
+    $('questionTopic').addEventListener('input', () => refreshSubList());
+
+    $('addBtn').addEventListener('click', function () {
+        const topicText = $('questionTopic').value.trim() || 'כללי';
+        const subText = $('questionSub').value.trim();
+        const qInput = $('newQuestionText');
+        const statusBox = $('addQuestionStatus');
+        const questionsArray = qInput.value.split('\n').map(q => q.trim()).filter(Boolean);
+
+        if (questionsArray.length === 0) { toast("הקלידו שאלות לפני השליחה.", false); return; }
+
+        this.disabled = true;
+        statusBox.innerText = "שומר..."; statusBox.style.color = "orange";
+
+        const questionsRef = ref(database, 'questions');
+        const base = Date.now();
+        Promise.all(questionsArray.map((q, i) => push(questionsRef, {
+            נושא: topicText, ...(subText ? { תת_נושא: subText } : {}), שאלה: q, timestamp: base + i
+        })))
+            .then(() => {
+                statusBox.innerText = "✅ נשמר בהצלחה!"; statusBox.style.color = "green";
+                qInput.value = "";   // הנושא ותת-הנושא נשארים, כדי להוסיף עוד שאלות לאותו מקום
+                setTimeout(() => statusBox.innerText = "", 3000);
+            })
+            .catch(() => { statusBox.innerText = "❌ שגיאה בשמירה."; statusBox.style.color = "red"; })
+            .finally(() => { this.disabled = false; });
+    });
+
+    // ---------- נושאים פעילים (נושא ← תתי-נושאים) ----------
+    function updateTopicBox(g, topic) {
+        const tcb = g.querySelector('input[data-role="topic"]');
+        const subs = [...g.querySelectorAll('input[data-sub]')];
+        if (!subs.length) { tcb.checked = isActiveQ(topic, ''); tcb.indeterminate = false; return; }
+        const n = subs.filter(c => c.checked).length;
+        tcb.checked = n === subs.length;
+        tcb.indeterminate = n > 0 && n < subs.length;
+    }
+
+    function syncTopicChecks() {
+        document.querySelectorAll('#topicsContainer .topic-group').forEach(g => {
+            const topic = g.dataset.topic;
+            g.querySelectorAll('input[data-sub]').forEach(cb => { cb.checked = isActiveQ(topic, cb.dataset.sub); });
+            updateTopicBox(g, topic);
+        });
+    }
+
+    $('topicsContainer').addEventListener('change', e => {
+        const cb = e.target, g = cb.closest('.topic-group');
+        if (!g) return;
+        if (cb.dataset.role === 'topic') {
+            cb.indeterminate = false;
+            g.querySelectorAll('input[data-sub]').forEach(c => { c.checked = cb.checked; });
         } else {
-            document.getElementById('syncIndicator').style.display = 'none';
-            document.getElementById('btnStopSync').style.display = 'none';
+            updateTopicBox(g, g.dataset.topic);
         }
-    }
-
-    document.getElementById('addBtn').addEventListener('click', function() {
-        const topicInput = document.getElementById('questionTopic');
-        const qInput = document.getElementById('newQuestionText');
-        
-        const topicText = topicInput.value.trim() || 'כללי';
-        const qText = qInput.value.trim();
-        const statusBox = document.getElementById('addQuestionStatus');
-        const btn = document.getElementById('addBtn');
-
-        if (!qText) {
-            alert("אנא הקלידו שאלות לפני השליחה.");
-            return;
-        }
-
-        const questionsArray = qText.split('\n').map(q => q.trim()).filter(q => q !== "");
-
-        if (questionsArray.length === 0) {
-            alert("לא נמצאו שאלות תקינות.");
-            return;
-        }
-
-        btn.disabled = true;
-        statusBox.innerText = questionsArray.length > 1 ? `שומר ${questionsArray.length} שאלות...` : "שומר את השאלה...";
-        statusBox.style.color = "orange";
-
-        const questionsRef = ref(database, 'questions');
-        
-        const savePromises = questionsArray.map((question, index) => {
-            return push(questionsRef, {
-                נושא: topicText,
-                שאלה: question,
-                timestamp: Date.now() + index 
-            });
-        });
-
-        Promise.all(savePromises).then(() => {
-            statusBox.innerText = questionsArray.length > 1 ? `${questionsArray.length} שאלות התווספו בהצלחה!` : "השאלה התווספה בהצלחה!";
-            statusBox.style.color = "green";
-            qInput.value = "";
-            btn.disabled = false;
-            setTimeout(() => { statusBox.innerText = ""; }, 4000);
-        }).catch((error) => {
-            console.error(error);
-            statusBox.innerText = "שגיאה בשמירת השאלות.";
-            statusBox.style.color = "red";
-            btn.disabled = false;
-        });
     });
 
-    document.getElementById('selectAllBtn').addEventListener('click', function() {
-        const checkboxes = document.querySelectorAll('#topicsContainer input[type="checkbox"]');
-        checkboxes.forEach(cb => cb.checked = true);
+    $('selectAllBtn').addEventListener('click', () => {
+        document.querySelectorAll('#topicsContainer input[type="checkbox"]').forEach(cb => { cb.checked = true; cb.indeterminate = false; });
     });
 
-    document.getElementById('setActiveTopicBtn').addEventListener('click', function() {
-        const checkboxes = document.querySelectorAll('#topicsContainer input[type="checkbox"]:checked');
-        const selectedTopics = Array.from(checkboxes).map(cb => cb.value);
-        
-        const statusBox = document.getElementById('activeTopicStatus');
-        const activeTopicsRef = ref(database, 'settings/activeTopics');
-
-        let dataToSave = selectedTopics;
-        if (selectedTopics.length === 0) {
-            dataToSave = ["__NONE__"];
-        }
-
-        set(activeTopicsRef, dataToSave).then(() => {
-            statusBox.innerText = "הנושאים עודכנו בהצלחה לתלמידים!";
-            statusBox.style.color = "green";
-            setTimeout(() => { statusBox.innerText = ""; }, 3000);
-        }).catch((error) => {
-            console.error(error);
-            statusBox.innerText = "שגיאה בעדכון הנושאים.";
-            statusBox.style.color = "red";
+    $('setActiveTopicBtn').addEventListener('click', () => {
+        const selected = [];
+        document.querySelectorAll('#topicsContainer .topic-group').forEach(g => {
+            const topic = g.dataset.topic;
+            const tcb = g.querySelector('input[data-role="topic"]');
+            if (tcb.checked && !tcb.indeterminate) selected.push(topic);   // נושא שלם: גם תתי-נושא שיתווספו בעתיד יוצגו
+            else g.querySelectorAll('input[data-sub]:checked').forEach(cb => selected.push(topic + SEP + cb.dataset.sub));
         });
+        const statusBox = $('activeTopicStatus');
+        set(ref(database, 'settings/activeTopics'), selected.length === 0 ? ["__NONE__"] : selected)
+            .then(() => {
+                statusBox.innerText = "✅ עודכן לתלמידים!"; statusBox.style.color = "green";
+                setTimeout(() => statusBox.innerText = "", 3000);
+            }).catch(() => { statusBox.innerText = "❌ שגיאה."; statusBox.style.color = "red"; });
     });
 
-    function initRealtimeListeners() {
-        document.getElementById('loader').style.display = 'block';
-        
-        const activeTopicsRef = ref(database, 'settings/activeTopics');
-        const oldActiveTopicRef = ref(database, 'settings/activeTopic');
-        const questionsRef = ref(database, 'questions');
-        const submissionsRef = ref(database, 'submissions');
-
-        onValue(activeTopicsRef, (snapshot) => {
-            const val = snapshot.val();
-            if (val) {
-                currentActiveTopics = Array.isArray(val) ? val : [val];
-                updateDisplayAndCheckboxes();
-                renderTeacherTable();
-            } else {
-                get(oldActiveTopicRef).then(snap => {
-                   if(snap.exists()) {
-                       currentActiveTopics = [snap.val()];
-                   } else {
-                       currentActiveTopics = ["הכל"];
-                   }
-                   updateDisplayAndCheckboxes();
-                   renderTeacherTable();
-                });
-            }
-        });
-
-        onValue(questionsRef, (snapshot) => {
-            currentQData = snapshot.val();
-            updateUniqueTopics();
-            renderTeacherTable();
-        });
-
-        onValue(submissionsRef, (snapshot) => {
-            currentSData = snapshot.val() || {};
-            const currentKeys = Object.keys(currentSData);
-
-            if (isInitialLoad) {
-                currentKeys.forEach(k => previousSubmissionsKeys.add(k));
-                isInitialLoad = false;
-            } else {
-                const newKeys = currentKeys.filter(k => !previousSubmissionsKeys.has(k));
-                
-                // סנכרון אוטומטי מבוסס משתנה מוסתר
-                if (autoSyncActive && newKeys.length > 0) {
-                    newKeys.forEach(k => {
-                        fetch(SYNC_WEB_APP_URL, {
-                            method: 'POST',
-                            body: JSON.stringify(currentSData[k])
-                        }).then(res => res.json()).then(data => {
-                            if (data.status === 'success') {
-                                updateLastSyncTime(); // עדכון הזמן בכל הצלחה של סנכרון אוטומטי
-                            }
-                        }).catch(err => console.error("שגיאת סנכרון לגוגל שיטס:", err));
-                    });
-                }
-                
-                currentKeys.forEach(k => previousSubmissionsKeys.add(k));
-            }
-
-            renderTeacherTable();
-        });
-    }
-    
     function updateUniqueTopics() {
         if (!currentQData) return;
-        const uniqueTopics = new Set();
-        Object.keys(currentQData).forEach(key => {
-            uniqueTopics.add(currentQData[key].נושא || 'כללי');
+        const tree = topicTree();
+        const topics = Object.keys(tree).sort(cmp);
+        const sig = JSON.stringify(topics.map(t => [t, [...tree[t]].sort(cmp)]));
+        if (sig === knownSig) return;
+
+        // שומרים בחירות שהמורה סימן ועדיין לא שמר
+        const prevSub = new Map(), prevTopic = new Map();
+        document.querySelectorAll('#topicsContainer input[data-sub]').forEach(cb => prevSub.set(cb.closest('.topic-group').dataset.topic + SEP + cb.dataset.sub, cb.checked));
+        document.querySelectorAll('#topicsContainer input[data-role="topic"]').forEach(cb => prevTopic.set(cb.closest('.topic-group').dataset.topic, cb.checked));
+
+        const container = $('topicsContainer');
+        container.innerHTML = '';
+        topics.forEach(topic => {
+            const subs = [...tree[topic]].sort(cmp);
+            const g = document.createElement('div');
+            g.className = 'topic-group'; g.dataset.topic = topic;
+
+            const tl = document.createElement('label');
+            tl.className = 'topic-checkbox-label topic-main';
+            const tcb = document.createElement('input');
+            tcb.type = 'checkbox'; tcb.dataset.role = 'topic';
+            const name = document.createElement('strong');
+            name.textContent = topic;
+            tl.append(tcb, name);
+            g.appendChild(tl);
+
+            if (subs.some(Boolean)) {
+                const list = document.createElement('div');
+                list.className = 'sub-list';
+                subs.forEach(sub => {
+                    const key = topic + SEP + sub;
+                    const l = document.createElement('label');
+                    l.className = 'topic-checkbox-label';
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox'; cb.dataset.sub = sub;
+                    cb.checked = prevSub.has(key) ? prevSub.get(key) : isActiveQ(topic, sub);
+                    l.append(cb, sub || 'ללא תת-נושא');
+                    list.appendChild(l);
+                });
+                g.appendChild(list);
+                updateTopicBox(g, topic);
+            } else {
+                tcb.checked = prevTopic.has(topic) ? prevTopic.get(topic) : isActiveQ(topic, '');
+            }
+            container.appendChild(g);
         });
-        
-        const topicsArr = Array.from(uniqueTopics).sort();
-        const newTopicsStr = JSON.stringify(topicsArr);
-        
-        if (newTopicsStr !== knownTopicsStr) {
-            knownTopicsStr = newTopicsStr;
-            const container = document.getElementById('topicsContainer');
-            container.innerHTML = '';
-            
-            topicsArr.forEach(topic => {
-                const label = document.createElement('label');
-                label.className = 'topic-checkbox-label';
-                
-                const cb = document.createElement('input');
-                cb.type = 'checkbox';
-                cb.value = topic;
-                
-                if (currentActiveTopics.includes("הכל") || currentActiveTopics.includes(topic)) {
-                    cb.checked = true;
-                }
-                
-                label.appendChild(cb);
-                label.appendChild(document.createTextNode(topic));
-                container.appendChild(label);
-            });
-        }
+        knownSig = sig;
+        refreshDatalists();
     }
 
     function updateDisplayAndCheckboxes() {
-        const displaySpan = document.getElementById('currentTopicDisplay');
-        if (currentActiveTopics.includes("הכל")) {
-            displaySpan.innerText = "כל הנושאים מוצגים";
-        } else if (currentActiveTopics.includes("__NONE__") || currentActiveTopics.length === 0) {
-            displaySpan.innerText = "אף נושא (המסכים ריקים)";
-        } else {
-            displaySpan.innerText = currentActiveTopics.join(", ");
+        const displaySpan = $('currentTopicDisplay');
+        if (currentActiveTopics.includes("הכל")) displaySpan.innerText = "כל הנושאים";
+        else if (currentActiveTopics.includes("__NONE__") || currentActiveTopics.length === 0) displaySpan.innerText = "אף נושא";
+        else displaySpan.innerText = currentActiveTopics
+            .map(x => x.includes(SEP) ? x.split(SEP).map(p => p || 'ללא תת-נושא').join(' › ') : x).join(', ');
+        syncTopicChecks();
+    }
+
+    // ---------- מאזינים בזמן אמת ----------
+    onValue(ref(database, 'settings/activeTopics'), (snapshot) => {
+        const val = snapshot.val();
+        currentActiveTopics = val ? (Array.isArray(val) ? val : [val]) : ["הכל"];   // גם כשלא הוגדר דבר
+        updateDisplayAndCheckboxes();
+        renderTeacherTable();
+        renderRoomsManagerDebounced();
+    });
+
+    onValue(ref(database, 'questions'), (snapshot) => {
+        currentQData = snapshot.val() || {};
+        updateUniqueTopics();
+        renderAll();
+        renderRoomsManagerDebounced();
+    });
+
+    onValue(ref(database, 'rooms'), (snapshot) => {
+        activeRoomsData = snapshot.val() || {};
+        renderRoomsManagerDebounced();
+    });
+
+    onValue(ref(database, 'submissions'), (snapshot) => {
+        currentSData = snapshot.val() || {};
+        renderTeacherTable();
+    });
+
+    onValue(ref(database, 'feedback'), snap => { currentFData = snap.val() || {}; renderTeacherTable(); });
+    onValue(ref(database, 'sessions'), snap => { sessionsData = snap.val() || {}; renderSessionSelect(); renderTeacherTable(); });
+    onValue(ref(database, 'settings/currentSession'), snap => { currentSession = snap.val(); renderSessionSelect(); renderTeacherTable(); });
+    setInterval(() => renderRoomsManager(), 30000);   // מרענן את "לפני X דקות" וזיהוי חוסר פעילות
+
+    // ---------- ניהול חדרים והתקדמות ----------
+    function ageText(ts) {
+        if (!ts) return '';
+        const m = Math.round((Date.now() - ts) / 60000);
+        return m < 1 ? 'נוצר כרגע' : m < 60 ? `נוצר לפני ${m} דק'` : `נוצר לפני ${Math.round(m / 60)} שע'`;
+    }
+
+    function activeQuestionIds() {
+        return Object.entries(currentQData || {}).filter(([, q]) => isActiveQ(qTopic(q), qSub(q))).map(([id]) => id);
+    }
+
+    function renderRoomsManager() {
+        const container = $('roomsContainer');
+        if (!activeRoomsData || Object.keys(activeRoomsData).length === 0) {
+            container.innerHTML = `<div style="text-align:center; grid-column: 1 / -1; padding: 40px; color: var(--text-muted); font-size: 18px; font-weight: bold;">אין כרגע חדרים פעילים במערכת.</div>`;
+            return;
         }
-        
-        const checkboxes = document.querySelectorAll('#topicsContainer input[type="checkbox"]');
-        checkboxes.forEach(cb => {
-            if (currentActiveTopics.includes("הכל") || currentActiveTopics.includes(cb.value)) {
-                cb.checked = true;
-            } else {
-                cb.checked = false;
-            }
+        const qIds = activeQuestionIds();
+        const now = Date.now();
+        container.innerHTML = "";
+        Object.entries(activeRoomsData).forEach(([roomCode, roomData]) => {
+            const users = roomData.users ? Object.keys(roomData.users) : [];
+            const usersHtml = users.length
+                ? users.map(u => `<span class="room-user-chip">👤 ${esc(u)}</span>`).join('')
+                : `<span style="color: var(--text-muted); font-style: italic;">חדר ריק ממתין לתלמידים...</span>`;
+            const submittedHtml = roomData.submitted
+                ? `<div style="margin-top: 10px; font-size: 14px; font-weight: bold; color: var(--success);">✅ הגשת התשובות הושלמה</div>` : '';
+
+            // התקדמות: כמה שאלות כבר יש עליהן תשובה, ומתי הייתה פעילות אחרונה
+            const answered = qIds.filter(id => (roomData['ans_' + id]?.text || '').trim()).length;
+            const pct = qIds.length ? Math.round(answered / qIds.length * 100) : 0;
+            const last = roomData.lastActive || roomData.createdAt || 0;
+            const idleMin = last ? Math.floor((now - last) / 60000) : 0;
+            const idle = users.length > 0 && !roomData.submitted && idleMin >= 3;
+            const activity = roomData.submitted ? '' : users.length === 0 ? ''
+                : idle ? `⚠️ אין פעילות ${idleMin} דק'`
+                : last ? (idleMin < 1 ? '🟢 פעילים כרגע' : `פעילים לפני ${idleMin} דק'`) : '';
+            const progressHtml = qIds.length ? `
+                <div class="room-progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><div class="room-progress-bar" style="width:${pct}%"></div></div>
+                <div class="room-progress-text">✍️ ${answered} מתוך ${qIds.length} שאלות עם תשובה${activity ? ' · ' + esc(activity) : ''}</div>` : '';
+
+            const card = document.createElement('div');
+            card.className = 'room-card' + (idle ? ' idle' : '');
+            card.innerHTML = `
+                <div>
+                    <div class="room-card-header">
+                        <span class="room-code">🔑 ${esc(roomCode)}</span>
+                        <span style="font-size: 14px; font-weight: bold; color: #4b5563; background: #f3f4f6; padding: 4px 10px; border-radius: 99px;">${users.length} תלמידים</span>
+                    </div>
+                    <div style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">${esc(ageText(roomData.createdAt))}</div>
+                    <div class="room-users">${usersHtml}${submittedHtml}</div>
+                    ${progressHtml}
+                </div>
+                <button class="btn btn-danger" style="width: 100%; font-size: 15px; padding: 8px;" data-act="close-room" data-id="${esc(roomCode)}">🗑️ מחיקת חדר (ניתוק כולם)</button>`;
+            container.appendChild(card);
+        });
+    }
+    const renderRoomsManagerDebounced = debounce(renderRoomsManager, 300);   // תלמידים מקלידים כל הזמן
+
+    // ---------- ניהול שאלות ותשובות: נושא ← תת-נושא ← שאלות (נפתח בלחיצה) ----------
+    const sortQ = (a, b) => cmp(a.topic, b.topic) || cmp(a.sub, b.sub) || a.ts - b.ts;
+    const chip = (text, bg, color) => `<span style="background:${bg}; padding:4px 8px; border-radius:6px; font-weight:bold; color:${color}; display:inline-block; margin:2px 0;">${esc(text)}</span>`;
+    const topicCell = q => chip(q.topic, '#e0f2fe', 'var(--blue-dark)') + (q.sub ? '<br>' + chip(q.sub, '#ede9fe', '#6d28d9') : '');
+    const FB = { great: ['🌟', 'מצוין'], good: ['✅', 'יפה'], improve: ['🔁', 'כדאי לחזק'] };
+    const openKeys = new Set();
+
+    // שאלות בנושא (ובתת-נושא, אם צוין)
+    const idsIn = (topic, sub) => Object.entries(currentQData || {})
+        .filter(([, q]) => qTopic(q) === topic && (sub === undefined || qSub(q) === sub)).map(([id]) => id);
+
+    // אחרי שינוי שם/העברה: מעדכן גם את בחירת הנושאים הפעילים, כדי שהתלמידים לא יאבדו שאלות
+    async function remapActive(mapFn) {
+        if (currentActiveTopics.includes("הכל") || currentActiveTopics.includes("__NONE__")) return;
+        const next = [...new Set(currentActiveTopics.map(mapFn))];
+        if (JSON.stringify(next) !== JSON.stringify(currentActiveTopics)) await set(ref(database, 'settings/activeTopics'), next);
+    }
+
+    // ----- שיעורים -----
+    function effectiveView() { return viewSession === 'auto' ? (currentSession ? currentSession.id : 'all') : viewSession; }
+    const inView = sub => { const v = effectiveView(); return v === 'all' ? true : v === 'none' ? !sub.sessionId : sub.sessionId === v; };
+
+    function renderSessionSelect() {
+        const sel = $('sessionSelect');
+        const list = Object.entries(sessionsData).sort((a, b) => (b[1].startedAt || 0) - (a[1].startedAt || 0));
+        const opts = [['all', '📚 כל השיעורים'],
+            ...list.map(([id, s]) => [id, `${s.name || 'שיעור'}${currentSession?.id === id ? ' (נוכחי)' : ''}`]),
+            ['none', '🕰️ ללא שיעור (הגשות ישנות)']];
+        sel.innerHTML = opts.map(([id, l]) => `<option value="${esc(id)}">${esc(l)}</option>`).join('');
+        sel.value = effectiveView();
+    }
+    $('sessionSelect').addEventListener('change', e => { viewSession = e.target.value; renderTeacherTable(); });
+    $('btnNewSession').addEventListener('click', () => {
+        $('sessName').value = `שיעור ${new Date().toLocaleDateString('he-IL')}`;
+        $('sessDialog').showModal();
+    });
+    $('sessCancel').addEventListener('click', () => $('sessDialog').close());
+    $('sessForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const name = $('sessName').value.trim() || `שיעור ${new Date().toLocaleDateString('he-IL')}`;
+        const id = push(ref(database, 'sessions')).key;
+        const info = { name, startedAt: Date.now() };
+        try {
+            await update(ref(database), { [`sessions/${id}`]: info, 'settings/currentSession': { id, ...info } });
+            viewSession = 'auto';
+            $('sessDialog').close();
+            toast('▶️ השיעור התחיל. הגשות חדשות ישויכו אליו');
+        } catch (err) { toast('שגיאה', false); }
+    });
+
+    // ----- חלון העברה / שינוי שם -----
+    let mvHandler = null;
+    function openMove({ title, note = '', topic = '', sub = '', showTopic = true, showSub = true, onOk }) {
+        $('mvTitle').textContent = title; $('mvNote').textContent = note;
+        $('mvTopicG').style.display = showTopic ? '' : 'none';
+        $('mvSubG').style.display = showSub ? '' : 'none';
+        $('mvTopic').value = topic; $('mvSub').value = sub;
+        mvHandler = onOk; refreshSubList(topic);
+        $('mvDialog').showModal();
+    }
+    $('mvTopic').addEventListener('input', () => refreshSubList($('mvTopic').value.trim()));
+    $('mvCancel').addEventListener('click', () => $('mvDialog').close());
+    $('mvForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const t = $('mvTopic').value.trim(), s = $('mvSub').value.trim();
+        if (!t && $('mvTopicG').style.display !== 'none') { toast('הקלד שם נושא', false); return; }
+        $('mvDialog').close();
+        try { await mvHandler?.(t, s); } catch (err) { toast('שגיאה בעדכון', false); }
+    });
+
+    // ----- משוב לחברותא -----
+    let fbEditing = null, fbStatusSel = '';
+    function setFbStatus(v) { fbStatusSel = v; document.querySelectorAll('#fbStatus .fb-s').forEach(b => b.classList.toggle('on', b.dataset.s === v)); }
+    document.querySelectorAll('#fbStatus .fb-s').forEach(b => b.addEventListener('click', () => setFbStatus(fbStatusSel === b.dataset.s ? '' : b.dataset.s)));
+    $('fbCancel').addEventListener('click', () => $('fbDialog').close());
+    $('fbDelete').addEventListener('click', async () => {
+        if (!fbEditing) return;
+        try { await remove(ref(database, `feedback/${fbEditing.key}`)); $('fbDialog').close(); toast('המשוב נמחק'); } catch (e) { toast('שגיאה', false); }
+    });
+    $('fbForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const note = $('fbNote').value.trim();
+        if (!fbEditing || (!fbStatusSel && !note)) { toast('בחר סימון או כתוב הערה', false); return; }
+        try {
+            await set(ref(database, `feedback/${fbEditing.key}`), { status: fbStatusSel, note, pair: fbEditing.pair, ts: Date.now() });
+            $('fbDialog').close(); toast('📤 המשוב נשלח לחברותא');
+        } catch (err) { toast('שגיאה בשליחה', false); }
+    });
+
+    // ----- ייבוא רשימה מובנית -----
+    function parseImport(text) {
+        let topic = '', sub = '';
+        const items = [];
+        text.split('\n').forEach(raw => {
+            const line = raw.trim();
+            if (!line) return;
+            if (/^##+/.test(line)) sub = line.replace(/^#+\s*/, '');
+            else if (/^#/.test(line)) { topic = line.replace(/^#+\s*/, ''); sub = ''; }
+            else items.push({ topic: topic || 'כללי', sub, text: line });
+        });
+        return items;
+    }
+    $('importText').addEventListener('input', () => {
+        const items = parseImport($('importText').value);
+        $('importStatus').style.color = 'var(--text-muted)';
+        $('importStatus').textContent = items.length ? `זוהו ${items.length} שאלות ב-${new Set(items.map(x => x.topic)).size} נושאים` : '';
+    });
+    $('btnImport').addEventListener('click', async function () {
+        const items = parseImport($('importText').value);
+        if (!items.length) { toast('לא זוהו שאלות לייבוא', false); return; }
+        this.disabled = true;
+        const base = Date.now(), qRef = ref(database, 'questions');
+        try {
+            await Promise.all(items.map((x, k) => push(qRef, { נושא: x.topic, ...(x.sub ? { תת_נושא: x.sub } : {}), שאלה: x.text, timestamp: base + k })));
+            $('importText').value = ''; $('importStatus').style.color = 'green'; $('importStatus').textContent = `✅ יובאו ${items.length} שאלות`;
+            setTimeout(() => $('importStatus').textContent = '', 4000);
+        } catch (e) { $('importStatus').style.color = 'red'; $('importStatus').textContent = '❌ שגיאה בייבוא'; }
+        this.disabled = false;
+    });
+
+    // ----- עץ נושאים: נושא ← תת-נושא ← שאלות -----
+    function groupBy(list) {
+        const topics = [];
+        list.forEach(q => {
+            let t = topics[topics.length - 1];
+            if (!t || t.topic !== q.topic) { t = { topic: q.topic, subs: [], items: [] }; topics.push(t); }
+            let s = t.subs[t.subs.length - 1];
+            if (!s || s.sub !== q.sub) { s = { sub: q.sub, items: [] }; t.subs.push(s); }
+            s.items.push(q); t.items.push(q);
+        });
+        return topics;
+    }
+
+    function headRow({ cls, key, open, label, meta, manage, topic, sub, sel }) {
+        const scope = cls === 'topic-row' ? 'topic' : 'sub';
+        const tr = document.createElement('tr');
+        tr.className = 'group-row ' + cls;
+        tr.dataset.act = 'toggle'; tr.dataset.key = key;
+        tr.tabIndex = 0; tr.setAttribute('role', 'button'); tr.setAttribute('aria-expanded', String(open));
+        const attrs = `data-scope="${scope}" data-topic="${esc(topic)}" data-sub="${esc(sub ?? '')}"`;
+        const td = document.createElement('td');
+        td.colSpan = 3;
+        td.innerHTML = `<div class="grp-head">
+                ${manage ? `<input type="checkbox" class="grp-sel" data-act="sel-group" ${attrs} ${sel === 'all' ? 'checked' : ''} aria-label="בחר את כל השאלות בקבוצה">` : ''}
+                <span class="grp-caret">${open ? '▾' : '◂'}</span>
+                <span class="grp-label">${scope === 'topic' ? '📚' : '📌'} ${esc(label)}</span>
+                <span class="grp-meta">${esc(meta)}</span>
+                ${manage ? `<span class="grp-actions">
+                    <button type="button" class="btn-icon" data-act="rename" ${attrs} title="שנה שם / העבר" aria-label="שנה שם או העבר">✏️</button>
+                    <button type="button" class="btn-icon" data-act="del-group" ${attrs} title="מחק את כל השאלות כאן" aria-label="מחק את כל השאלות כאן">🗑️</button>
+                </span>` : ''}
+            </div>`;
+        tr.appendChild(td);
+        return tr;
+    }
+
+    const selState = items => { const n = items.filter(q => selIds.has(q.id)).length; return n === 0 ? 'none' : n === items.length ? 'all' : 'some'; };
+
+    function appendGroups(tbody, tab, groups, makeRow, metaFn, manage) {
+        groups.forEach(g => {
+            const tKey = `${tab}:t:${g.topic}`;
+            const tOpen = openKeys.has(tKey);
+            tbody.appendChild(headRow({ cls: 'topic-row', key: tKey, open: tOpen, label: g.topic, meta: metaFn(g.items), manage, topic: g.topic, sel: selState(g.items) }));
+            if (!tOpen) return;
+            const hasSubs = g.subs.some(s => s.sub);
+            g.subs.forEach(sg => {
+                let show = true;
+                if (hasSubs) {
+                    const sKey = `${tab}:s:${g.topic}${SEP}${sg.sub}`;
+                    show = openKeys.has(sKey);
+                    tbody.appendChild(headRow({ cls: 'sub-row', key: sKey, open: show, label: sg.sub || 'שאלות כלליות', meta: metaFn(sg.items), manage, topic: g.topic, sub: sg.sub, sel: selState(sg.items) }));
+                }
+                if (show) sg.items.forEach(q => tbody.appendChild(makeRow(q)));
+            });
         });
     }
 
-    function renderTeacherTable() {
-        const tbody = document.getElementById('answersBody');
-        document.getElementById('loader').style.display = 'none';
+    function renderAll() { renderQuestionsManager(); renderTeacherTable(); }
 
-        if (!currentQData) {
-            tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>לא הוגדרו שאלות במערכת.</td></tr>";
-            return;
+    function updateSelBar() {
+        const onManage = $('tab-manage').classList.contains('active');
+        $('selBar').hidden = !(selIds.size && onManage);
+        $('selCount').textContent = `נבחרו ${selIds.size} שאלות`;
+    }
+    window.updateSelBar = updateSelBar;
+
+    document.addEventListener('change', e => {
+        if (!e.target.classList?.contains('sel-cb')) return;
+        const id = e.target.dataset.id;
+        e.target.checked ? selIds.add(id) : selIds.delete(id);
+        renderQuestionsManager();
+    });
+
+    document.addEventListener('click', async (e) => {
+        const el = e.target.closest('[data-act]');
+        if (!el) return;
+        const act = el.dataset.act;
+        const topic = el.dataset.topic, sub = el.dataset.sub, bySub = el.dataset.scope === 'sub';
+        const scopeIds = () => idsIn(topic, bySub ? sub : undefined);
+        const where = () => !bySub ? `בנושא "${topic}"` : sub ? `בתת-הנושא "${sub}" (${topic})` : `ב"שאלות כלליות" של "${topic}"`;
+
+        if (act === 'toggle') {
+            const k = el.dataset.key;
+            openKeys.has(k) ? openKeys.delete(k) : openKeys.add(k);
+            renderAll();
+        } else if (act === 'sel-group') {
+            const ids = scopeIds();
+            const all = ids.every(id => selIds.has(id));
+            ids.forEach(id => all ? selIds.delete(id) : selIds.add(id));
+            renderQuestionsManager();
+        } else if (act === 'sel-clear') {
+            selIds.clear(); renderQuestionsManager();
+        } else if (act === 'sel-del') {
+            const ids = [...selIds];
+            if (!ids.length || !confirm(`למחוק ${ids.length} שאלות שנבחרו?\nהפעולה אינה ניתנת לשחזור. (תשובות שכבר הוגשו לא יימחקו.)`)) return;
+            try { await update(ref(database, 'questions'), Object.fromEntries(ids.map(id => [id, null]))); selIds.clear(); toast(`🗑️ נמחקו ${ids.length} שאלות`); }
+            catch (err) { toast('שגיאה במחיקה', false); }
+        } else if (act === 'sel-move') {
+            const ids = [...selIds];
+            if (!ids.length) return;
+            openMove({ title: `📂 העברת ${ids.length} שאלות`, note: 'השאלות יועברו לנושא ולתת-הנושא שתבחר. תת-נושא ריק = ישירות תחת הנושא.',
+                onOk: async (t, s) => {
+                    const upd = {};
+                    ids.forEach(id => { upd[`questions/${id}/נושא`] = t; upd[`questions/${id}/תת_נושא`] = s || null; });
+                    await update(ref(database), upd); selIds.clear(); toast('📂 השאלות הועברו');
+                } });
+        } else if (act === 'del-group') {
+            const ids = scopeIds();
+            if (!ids.length) return;
+            if (!confirm(`למחוק ${ids.length} שאלות ${where()}?\nהפעולה אינה ניתנת לשחזור. (תשובות שכבר הוגשו לא יימחקו.)`)) return;
+            try { await update(ref(database, 'questions'), Object.fromEntries(ids.map(id => [id, null]))); toast(`🗑️ נמחקו ${ids.length} שאלות`); }
+            catch (err) { toast('שגיאה במחיקה', false); }
+        } else if (act === 'rename') {
+            if (!bySub) {
+                openMove({ title: '✏️ שינוי שם נושא', note: 'אם תקליד שם של נושא קיים, הנושאים יתמזגו.', topic, showSub: false,
+                    onOk: async (t) => {
+                        if (t === topic) return;
+                        const upd = {}; scopeIds().forEach(id => { upd[`questions/${id}/נושא`] = t; });
+                        await update(ref(database), upd);
+                        await remapActive(x => x === topic ? t : x.startsWith(topic + SEP) ? t + x.slice(topic.length) : x);
+                        toast('✅ שם הנושא עודכן');
+                    } });
+            } else {
+                openMove({ title: '✏️ שינוי שם או העברת תת-נושא', note: 'אפשר לשנות את שם תת-הנושא, או להעביר אותו לנושא אחר (כולל נושא קיים).', topic, sub,
+                    onOk: async (t, s) => {
+                        if (t === topic && s === sub) return;
+                        const upd = {};
+                        scopeIds().forEach(id => { upd[`questions/${id}/נושא`] = t; upd[`questions/${id}/תת_נושא`] = s || null; });
+                        await update(ref(database), upd);
+                        await remapActive(x => x === topic + SEP + sub ? t + SEP + s : x);
+                        toast('✅ עודכן');
+                    } });
+            }
+        } else if (act === 'feedback') {
+            fbEditing = { key: el.dataset.key, pair: el.dataset.pair };
+            const fb = currentFData[el.dataset.key];
+            $('fbTitle').textContent = `💬 משוב לחברותא: ${el.dataset.pair}`;
+            $('fbQuestion').textContent = el.dataset.q;
+            $('fbNote').value = fb?.note || '';
+            setFbStatus(fb?.status || '');
+            $('fbDelete').style.display = fb ? '' : 'none';
+            $('fbDialog').showModal();
         }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('tr.group-row')) {
+            e.preventDefault();
+            e.target.click();
+        }
+    });
+
+    function renderQuestionsManager() {
+        const tbody = $('questionsBody');
+        const table = $('questionsTable');
+        $('loaderQuestions').style.display = 'none';
+
+        if (!currentQData || Object.keys(currentQData).length === 0) { table.style.display = 'none'; selIds.clear(); updateSelBar(); return; }
+        for (const id of [...selIds]) if (!currentQData[id]) selIds.delete(id);
+
+        table.style.display = 'table';
+        tbody.innerHTML = "";
+        const list = Object.entries(currentQData)
+            .map(([id, q]) => ({ id, topic: qTopic(q), sub: qSub(q), text: q.שאלה, ts: q.timestamp || 0 }))
+            .sort(sortQ);
+
+        appendGroups(tbody, 'm', groupBy(list), q => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><label class="sel-wrap"><input type="checkbox" class="sel-cb" data-id="${esc(q.id)}" ${selIds.has(q.id) ? 'checked' : ''} aria-label="בחר שאלה"> ${topicCell(q)}</label></td>
+                <td style="font-weight:600;">${esc(q.text)}</td>
+                <td style="text-align:center;">
+                    <button class="btn-icon" title="ערוך" aria-label="ערוך שאלה" data-act="edit-q" data-id="${esc(q.id)}">✏️</button>
+                    <button class="btn-icon" title="מחק" aria-label="מחק שאלה" data-act="del-q" data-id="${esc(q.id)}">🗑️</button>
+                </td>`;
+            return tr;
+        }, items => `${items.length} שאלות`, true);
+        updateSelBar();
+    }
+
+    function renderTeacherTable() {
+        const tbody = $('answersBody');
+        $('loaderLive').style.display = 'none';
+
+        if (!currentQData || Object.keys(currentQData).length === 0) {
+            tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>לא הוגדרו שאלות.</td></tr>"; return;
+        }
+
+        const visibleQuestions = Object.entries(currentQData)
+            .map(([id, q]) => ({ id, text: q.שאלה, topic: qTopic(q), sub: qSub(q), ts: q.timestamp || 0 }))
+            .filter(q => isActiveQ(q.topic, q.sub))
+            .sort(sortQ);
+
+        if (visibleQuestions.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>אין שאלות שמוצגות כרגע לפי הסינון.</td></tr>"; return;
+        }
+
+        // אינדקס חד-פעמי של ההגשות (רק מהשיעור הנבחר). התאמה לפי questionId; הגשות ישנות מותאמות לפי נוסח השאלה.
+        const byId = {}, byText = {};
+        for (const [key, sub] of Object.entries(currentSData || {})) {
+            if (!inView(sub)) continue;
+            const map = sub.questionId ? byId : byText;
+            const qk = sub.questionId || sub.שאלה;
+            const pair = sub.חברותא || '—';
+            const bucket = (map[qk] ||= {});
+            const ts = sub.timestamp || 0;
+            if (!bucket[pair] || ts > bucket[pair].ts) bucket[pair] = { ans: sub.תשובה || '', ts, key };
+        }
+        visibleQuestions.forEach(q => {
+            const merged = { ...(byText[q.text] || {}) };
+            for (const [pair, v] of Object.entries(byId[q.id] || {})) {
+                if (!merged[pair] || v.ts > merged[pair].ts) merged[pair] = v;
+            }
+            q.merged = merged;
+        });
 
         tbody.innerHTML = "";
-
-        const questions = Object.keys(currentQData).map(key => {
-            return {
-                id: key,
-                text: currentQData[key].שאלה,
-                topic: currentQData[key].נושא || 'כללי'
-            };
-        });
-
-        const visibleQuestions = questions.filter(q => 
-            currentActiveTopics.includes("הכל") || currentActiveTopics.includes(q.topic)
-        );
-
-        if(visibleQuestions.length === 0) {
-             tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>אין שאלות שמוצגות כרגע לפי הסינון.</td></tr>";
-             return;
-        }
-
-        visibleQuestions.forEach(q => {
+        appendGroups(tbody, 'l', groupBy(visibleQuestions), q => {
+            const answersHtml = Object.entries(q.merged).map(([pair, v]) => {
+                const fb = currentFData[v.key];
+                const fbInfo = fb ? FB[fb.status] || ['💬', 'הערה'] : null;
+                return `
+                <div style="margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--border);">
+                    <div style="color:var(--blue-dark); font-weight:bold; font-size:15px; margin-bottom:4px;">👥 חברותא: ${esc(pair)}</div>
+                    <div style="white-space:pre-wrap; background:#f8fbff; padding:8px 12px; border-right:4px solid var(--blue-light); border-radius:4px 0 0 4px; font-weight:600;">${esc(v.ans)}</div>
+                    <div class="fb-line">
+                        ${fb ? `<span class="fb-badge fb-${esc(fb.status || 'note')}">${fbInfo[0]} ${esc(fbInfo[1])}</span> <span>${esc(fb.note || '')}</span>` : ''}
+                        <button type="button" class="fb-btn" data-act="feedback" data-key="${esc(v.key)}" data-pair="${esc(pair)}" data-q="${esc(q.text)}">${fb ? '✏️ ערוך משוב' : '💬 כתוב משוב'}</button>
+                    </div>
+                </div>`;
+            }).join('');
             const tr = document.createElement('tr');
-            
-            let answersHtml = "";
-            let uniqueAnswers = {};
-
-            if (currentSData) {
-                for (let sKey in currentSData) {
-                    const submission = currentSData[sKey];
-                    if (submission.שאלה === q.text) {
-                        if (!uniqueAnswers[submission.חברותא] || submission.timestamp > uniqueAnswers[submission.חברותא].timestamp) {
-                            uniqueAnswers[submission.חברותא] = {
-                                תשובה: submission.תשובה,
-                                timestamp: submission.timestamp || 0
-                            };
-                        }
-                    }
-                }
-                
-                for (let chavrusa in uniqueAnswers) {
-                    let cleanAnswer = uniqueAnswers[chavrusa].תשובה.replace(/אני \((.*?)\):/g, '$1:');
-                    
-                    answersHtml += `
-                        <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;">
-                            <div style="color: var(--blue-dark); font-weight: bold; margin-bottom: 4px; font-size: 15px;">👥 חברותא: ${chavrusa}</div>
-                            <div style="white-space: pre-wrap; padding-right: 12px; border-right: 3px solid var(--secondary-color); color: #333; line-height: 1.6; font-size: 15px; background-color: #f8fbff; padding-top: 6px; padding-bottom: 6px; border-radius: 4px 0 0 4px;">${cleanAnswer}</div>
-                        </div>`;
-                }
-            }
-
             tr.innerHTML = `
-                <td><span style="background: #e0f2fe; padding: 4px 8px; border-radius: 6px; font-size: 14px; color: var(--blue-dark); font-weight: bold;">${q.topic}</span></td>
-                <td style="font-weight:bold; font-size: 16px; color: #1e293b;">${q.text}</td>
-                <td>${answersHtml || '<span style="color:#94a3b8; font-style: italic;">אין עדיין תשובות</span>'}</td>
-            `;
-            tbody.appendChild(tr);
-        });
+                <td>${topicCell(q)}</td>
+                <td style="font-weight:700; font-size:16px;">${esc(q.text)}</td>
+                <td>${answersHtml || '<span style="color:var(--text-muted); font-style:italic;">טרם התקבלו תשובות...</span>'}</td>`;
+            return tr;
+        }, items => `${items.length} שאלות · ${items.filter(q => Object.keys(q.merged).length).length} עם תשובות`, false);
     }
 </script>
 
