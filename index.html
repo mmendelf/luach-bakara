@@ -125,6 +125,18 @@
         .login-box { background: #fff; border-radius: 20px; padding: 32px; max-width: 420px; width: 100%; text-align: center; display: flex; flex-direction: column; gap: 14px; }
         .login-box h2 { color: var(--blue-dark); }
         .user-bar { position: fixed; top: 10px; left: 12px; z-index: 800; background: #fff; border: 1.5px solid var(--border); border-radius: 99px; padding: 6px 14px; font-size: 13px; font-weight: 700; display: flex; gap: 10px; align-items: center; }
+        .ans-block { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+        .ans-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+        .ans-pair { color: var(--blue-dark); font-weight: 800; font-size: 15px; }
+        .live-badge, .done-badge, .typing-badge { font-size: 12px; font-weight: 800; padding: 2px 10px; border-radius: 99px; }
+        .live-badge { background: #dcfce7; color: #166534; }
+        .done-badge { background: #e0f2fe; color: #075985; }
+        .typing-badge { background: #fef3c7; color: #92400e; }
+        .au-body { white-space: pre-wrap; background: #f8fbff; padding: 8px 12px; border-right: 4px solid var(--blue-light); border-radius: 4px 0 0 4px; font-weight: 600; line-height: 1.7; }
+        .au-seg { border-radius: 4px; padding: 1px 2px; }
+        .au-legend { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+        .au-chip { font-size: 12px; font-weight: 800; padding: 2px 10px; border-radius: 99px; }
+        .room-authors { margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--text-muted); }
         .grp-actions { margin-inline-start: auto; display: flex; gap: 4px; }
         .grp-sel { width: 20px; height: 20px; flex: none; accent-color: var(--blue); }
         .sel-wrap { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; margin: 0; font-weight: inherit; }
@@ -593,6 +605,9 @@
         });
     });
 
+    // ל-Sheets נשלחים רק השדות המקוריים (בלי נתוני "מי כתב מה" וכו')
+    const cleanForSheets = s => ({ חברותא: s.חברותא, נושא: s.נושא, שאלה: s.שאלה, תשובה: s.תשובה, timestamp: s.timestamp, סוג_הגשה: s.סוג_הגשה });
+
     function updateLastSyncTime() {
         const timeStr = new Date().toLocaleString('he-IL');
         $('syncTimeDisplay').innerText = timeStr;
@@ -608,7 +623,7 @@
         const claim = await runTransaction(ref(database, `syncState/${key}`), cur => cur ? undefined : Date.now());
         if (!claim.committed) return;                       // טאב אחר כבר טיפל בה
         try {
-            const res = await fetch(SYNC_WEB_APP_URL, { method: 'POST', body: JSON.stringify(data) });
+            const res = await fetch(SYNC_WEB_APP_URL, { method: 'POST', body: JSON.stringify(cleanForSheets(data)) });
             const out = await res.json();
             if (out.status !== 'success') throw new Error('sync failed');
             updateLastSyncTime();
@@ -629,7 +644,7 @@
         btn.disabled = true; status.innerText = "⏳ מייצא..."; status.style.color = "orange";
         const entries = currentSData ? Object.entries(currentSData) : [];
         try {
-            const res = await fetch(SYNC_WEB_APP_URL, { method: 'POST', body: JSON.stringify(entries.map(([, v]) => v)) });
+            const res = await fetch(SYNC_WEB_APP_URL, { method: 'POST', body: JSON.stringify(entries.map(([, v]) => cleanForSheets(v))) });
             const data = await res.json();
             if (data.status !== 'success') throw new Error('export failed');
             const now = Date.now();
@@ -817,6 +832,7 @@
     onValue(ref(database, 'rooms'), (snapshot) => {
         activeRoomsData = snapshot.val() || {};
         renderRoomsManagerDebounced();
+        renderLiveDebounced();   // התשובות בלייב מתעדכנות תוך כדי כתיבה
     });
 
     onValue(ref(database, 'submissions'), (snapshot) => {
@@ -870,6 +886,14 @@
                 <div class="room-progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><div class="room-progress-bar" style="width:${pct}%"></div></div>
                 <div class="room-progress-text">✍️ ${answered} מתוך ${qIds.length} שאלות עם תשובה${activity ? ' · ' + esc(activity) : ''}</div>` : '';
 
+            // כמה תווים כתב כל תלמיד בחדר
+            const authorChars = {};
+            Object.entries(roomData).forEach(([k, v]) => {
+                if (k.startsWith('ans_') && v && v.segs) parseSegs(v.segs).forEach(sg => { const n = sg.b || 'לא ידוע'; authorChars[n] = (authorChars[n] || 0) + sg.t.length; });
+            });
+            const authorsHtml = Object.keys(authorChars).length
+                ? `<div class="room-authors">✍️ ${Object.entries(authorChars).map(([n, c]) => `${esc(n)}: ${c}`).join(' · ')} תווים</div>` : '';
+
             const card = document.createElement('div');
             card.className = 'room-card' + (idle ? ' idle' : '');
             card.innerHTML = `
@@ -880,13 +904,15 @@
                     </div>
                     <div style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">${esc(ageText(roomData.createdAt))}</div>
                     <div class="room-users">${usersHtml}${submittedHtml}</div>
+                    ${authorsHtml}
                     ${progressHtml}
                 </div>
                 <button class="btn btn-danger" style="width: 100%; font-size: 15px; padding: 8px;" data-act="close-room" data-id="${esc(roomCode)}">🗑️ מחיקת חדר (ניתוק כולם)</button>`;
             container.appendChild(card);
         });
     }
-    const renderRoomsManagerDebounced = debounce(renderRoomsManager, 300);   // תלמידים מקלידים כל הזמן
+    const renderRoomsManagerDebounced = debounce(renderRoomsManager, 300);
+    const renderLiveDebounced = debounce(() => renderTeacherTable(), 300);   // תלמידים מקלידים כל הזמן
 
     // ---------- ניהול שאלות ותשובות: נושא ← תת-נושא ← שאלות (נפתח בלחיצה) ----------
     const sortQ = (a, b) => cmp(a.topic, b.topic) || cmp(a.sub, b.sub) || a.ts - b.ts;
@@ -1188,6 +1214,45 @@
         updateSelBar();
     }
 
+    // ----- מי כתב מה (קטעי תשובה עם שם הכותב) -----
+    const PALETTE = ['#bfdbfe', '#fde68a', '#bbf7d0', '#fbcfe8', '#ddd6fe'];
+    function parseSegs(v) {
+        try { const a = JSON.parse(v); return Array.isArray(a) ? a.filter(x => x && typeof x.t === 'string') : []; } catch (e) { return []; }
+    }
+    function authorshipHtml(text, segsRaw) {
+        const segs = parseSegs(segsRaw);
+        if (!segs.length || segs.map(x => x.t).join('').trim() !== String(text).trim()) return { body: esc(text), legend: '' };
+        const names = [...new Set(segs.map(x => x.b || ''))];
+        const sorted = names.filter(Boolean).sort(cmp);
+        const color = n => n === '' ? '#e5e7eb' : PALETTE[sorted.indexOf(n) % PALETTE.length];
+        const label = n => n || 'לא ידוע';
+        const shown = segs.map(x => ({ ...x }));
+        shown[0].t = shown[0].t.trimStart();
+        shown[shown.length - 1].t = shown[shown.length - 1].t.trimEnd();
+        const per = {}; let total = 0;
+        segs.forEach(x => { per[x.b || ''] = (per[x.b || ''] || 0) + x.t.length; total += x.t.length; });
+        return {
+            body: shown.map(x => `<span class="au-seg" style="background:${color(x.b || '')}" title="${esc(label(x.b || ''))}">${esc(x.t)}</span>`).join(''),
+            legend: names.map(n => `<span class="au-chip" style="background:${color(n)}">${esc(label(n))} ${Math.round(per[n] / (total || 1) * 100)}%</span>`).join('')
+        };
+    }
+
+    // תשובות שנכתבות כרגע בחדרים (טיוטות בלייב), לפי שאלה
+    function liveDraftsByQuestion() {
+        const map = {};
+        Object.entries(activeRoomsData || {}).forEach(([code, r]) => {
+            const names = r.users ? Object.keys(r.users) : [];
+            const label = names.length > 1 ? names.join(' ו-') : names.length === 1 ? `${names[0]} (לבד)` : `חדר ${code}`;
+            Object.keys(r).forEach(k => {
+                if (!k.startsWith('ans_')) return;
+                const qid = k.slice(4), text = (r[k] && r[k].text) || '';
+                if (!text.trim()) return;
+                (map[qid] ||= []).push({ label, text, segs: r[k].segs, typing: r['typing_' + qid] || '' });
+            });
+        });
+        return map;
+    }
+
     function renderTeacherTable() {
         const tbody = $('answersBody');
         $('loaderLive').style.display = 'none';
@@ -1205,7 +1270,7 @@
             tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>אין שאלות שמוצגות כרגע לפי הסינון.</td></tr>"; return;
         }
 
-        // אינדקס חד-פעמי של ההגשות (רק מהשיעור הנבחר). התאמה לפי questionId; הגשות ישנות מותאמות לפי נוסח השאלה.
+        // הגשות (רק מהשיעור הנבחר). התאמה לפי questionId; הגשות ישנות בלי מזהה מותאמות לפי נוסח השאלה.
         const byId = {}, byText = {};
         for (const [key, sub] of Object.entries(currentSData || {})) {
             if (!inView(sub)) continue;
@@ -1214,29 +1279,46 @@
             const pair = sub.חברותא || '—';
             const bucket = (map[qk] ||= {});
             const ts = sub.timestamp || 0;
-            if (!bucket[pair] || ts > bucket[pair].ts) bucket[pair] = { ans: sub.תשובה || '', ts, key };
+            if (!bucket[pair] || ts > bucket[pair].ts) bucket[pair] = { ans: sub.תשובה || '', ts, key, segs: sub.segs };
         }
+
+        const live = liveDraftsByQuestion();
         visibleQuestions.forEach(q => {
             const merged = { ...(byText[q.text] || {}) };
             for (const [pair, v] of Object.entries(byId[q.id] || {})) {
                 if (!merged[pair] || v.ts > merged[pair].ts) merged[pair] = v;
             }
-            q.merged = merged;
+            const entries = [];
+            // קודם מה שנכתב עכשיו בחדרים; אם החברותא כבר הגישה, מסומן "הוגש"
+            (live[q.id] || []).forEach(dr => {
+                const sb = merged[dr.label];
+                entries.push({ label: dr.label, text: dr.text, segs: dr.segs, typing: dr.typing, status: sb ? 'done' : 'live', key: sb && sb.key });
+            });
+            Object.entries(merged).forEach(([pair, v]) => {
+                if (!entries.some(e => e.label === pair)) entries.push({ label: pair, text: v.ans, segs: v.segs, status: 'done', key: v.key });
+            });
+            q.entries = entries;
         });
 
         tbody.innerHTML = "";
         appendGroups(tbody, 'l', groupBy(visibleQuestions), q => {
-            const answersHtml = Object.entries(q.merged).map(([pair, v]) => {
-                const fb = currentFData[v.key];
+            const answersHtml = q.entries.map(e => {
+                const a = authorshipHtml(e.text, e.segs);
+                const fb = e.key && currentFData[e.key];
                 const fbInfo = fb ? FB[fb.status] || ['💬', 'הערה'] : null;
                 return `
-                <div style="margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--border);">
-                    <div style="color:var(--blue-dark); font-weight:bold; font-size:15px; margin-bottom:4px;">👥 חברותא: ${esc(pair)}</div>
-                    <div style="white-space:pre-wrap; background:#f8fbff; padding:8px 12px; border-right:4px solid var(--blue-light); border-radius:4px 0 0 4px; font-weight:600;">${esc(v.ans)}</div>
-                    <div class="fb-line">
-                        ${fb ? `<span class="fb-badge fb-${esc(fb.status || 'note')}">${fbInfo[0]} ${esc(fbInfo[1])}</span> <span>${esc(fb.note || '')}</span>` : ''}
-                        <button type="button" class="fb-btn" data-act="feedback" data-key="${esc(v.key)}" data-pair="${esc(pair)}" data-q="${esc(q.text)}">${fb ? '✏️ ערוך משוב' : '💬 כתוב משוב'}</button>
+                <div class="ans-block">
+                    <div class="ans-head">
+                        <span class="ans-pair">👥 חברותא: ${esc(e.label)}</span>
+                        ${e.status === 'live' ? '<span class="live-badge">🟢 בכתיבה</span>' : '<span class="done-badge">✅ הוגש</span>'}
+                        ${e.status === 'live' && e.typing ? `<span class="typing-badge">✍️ ${esc(e.typing)} כותב כעת...</span>` : ''}
                     </div>
+                    <div class="au-body">${a.body}</div>
+                    ${a.legend ? `<div class="au-legend">${a.legend}</div>` : ''}
+                    ${e.key ? `<div class="fb-line">
+                        ${fb ? `<span class="fb-badge fb-${esc(fb.status || 'note')}">${fbInfo[0]} ${esc(fbInfo[1])}</span> <span>${esc(fb.note || '')}</span>` : ''}
+                        <button type="button" class="fb-btn" data-act="feedback" data-key="${esc(e.key)}" data-pair="${esc(e.label)}" data-q="${esc(q.text)}">${fb ? '✏️ ערוך משוב' : '💬 כתוב משוב'}</button>
+                    </div>` : ''}
                 </div>`;
             }).join('');
             const tr = document.createElement('tr');
@@ -1245,7 +1327,7 @@
                 <td style="font-weight:700; font-size:16px;">${esc(q.text)}</td>
                 <td>${answersHtml || '<span style="color:var(--text-muted); font-style:italic;">טרם התקבלו תשובות...</span>'}</td>`;
             return tr;
-        }, items => `${items.length} שאלות · ${items.filter(q => Object.keys(q.merged).length).length} עם תשובות`, false);
+        }, items => `${items.length} שאלות · ${items.filter(q => q.entries.length).length} עם תשובות`, false);
     }
 </script>
 
