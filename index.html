@@ -1279,7 +1279,9 @@
             const pair = sub.חברותא || '—';
             const bucket = (map[qk] ||= {});
             const ts = sub.timestamp || 0;
-            if (!bucket[pair] || ts > bucket[pair].ts) bucket[pair] = { ans: sub.תשובה || '', ts, key, segs: sub.segs };
+            // מפתח המשוב: חדר+שאלה (כך שני התלמידים מקבלים אותו); להגשות ישנות: מפתח ההגשה
+            const fbKey = (sub.room && sub.questionId) ? `${sub.room}_${sub.questionId}` : key;
+            if (!bucket[pair] || ts > bucket[pair].ts) bucket[pair] = { ans: sub.תשובה || '', ts, key: fbKey, segs: sub.segs };
         }
 
         const live = liveDraftsByQuestion();
