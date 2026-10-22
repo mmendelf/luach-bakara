@@ -225,7 +225,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
                 <h2 class="section-title" style="margin:0;">מצב החדרים בכיתה <span class="live-indicator" style="font-size:16px; margin-right:10px;">● בלייב</span></h2>
                 <button id="btnCreateRoomTeacher" class="btn" style="background: var(--purple); box-shadow: 0 4px 12px rgba(124,58,237,0.2);">➕ צור חדר חדש לתלמידים</button>
-                <button id="btnCleanRooms" class="btn" style="background: var(--text-muted);">🧹 נקה חדרים ישנים</button>
+                <button id="btnCleanRooms" class="btn" style="background: var(--text-muted);">🧹 נקה חדרים נטושים</button>
             </div>
             <p style="color:var(--text-muted); font-weight:600; margin-top:10px;">כאן תוכל לראות אילו תלמידים נמצאים כרגע באיזה חדר, ולסגור חדרים מרחוק.</p>
             
@@ -581,13 +581,16 @@
     // ניקוי חדרים ישנים: מעל 24 שעות, או ריקים (בלי תלמידים) שנוצרו לפני יותר משעתיים
     $('btnCleanRooms').addEventListener('click', async () => {
         const now = Date.now();
+        const DAYS = 7;
         const stale = Object.entries(activeRoomsData || {}).filter(([, r]) => {
-            const age = r.createdAt ? now - r.createdAt : Infinity;
+            const last = r.lastActive || r.createdAt || 0;
             const empty = !r.users || Object.keys(r.users).length === 0;
-            return age > 24 * 3600e3 || (empty && age > 2 * 3600e3);
+            const hasAnswers = Object.keys(r).some(k => k.startsWith('ans_'));
+            if (last) return now - last > DAYS * 24 * 3600e3;   // חדרים נשארים כדי שתלמידים יוכלו לחזור אליהם
+            return empty && !hasAnswers;                          // חדרים ישנים בלי תאריך: רק ריקים לגמרי
         }).map(([code]) => code);
-        if (stale.length === 0) { toast("אין חדרים ישנים לניקוי"); return; }
-        if (!confirm(`למחוק ${stale.length} חדרים ישנים/ריקים?`)) return;
+        if (stale.length === 0) { toast("אין חדרים נטושים לניקוי"); return; }
+        if (!confirm(`למחוק ${stale.length} חדרים שלא היו בהם פעילות מעל ${DAYS} ימים (או ריקים לגמרי)?\nתלמידים כבר לא יוכלו לחזור אליהם.`)) return;
         try {
             await update(ref(database, 'rooms'), Object.fromEntries(stale.map(c => [c, null])));
             toast(`🧹 נמחקו ${stale.length} חדרים`);
