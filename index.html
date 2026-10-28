@@ -111,6 +111,10 @@
         .room-code { font-size: 22px; font-weight: 900; color: var(--purple); letter-spacing: 2px; }
         .room-users { margin-bottom: 15px; font-size: 16px; line-height: 1.6; }
         .room-user-chip { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 4px 12px; border-radius: 99px; font-size: 14px; font-weight: bold; margin-bottom: 6px; margin-left: 6px; }
+        .room-user-chip.banned { background: #fee2e2; color: #991b1b; }
+        .banned-row { margin-top: 8px; font-size: 14px; font-weight: 800; color: #991b1b; }
+        button.chip-act { all: unset; cursor: pointer; margin-inline-start: 6px; font-size: 13px; }
+        button.chip-act:hover { transform: scale(1.25); }
 
         tr.group-row td { background: #eef4ff; font-weight: 800; color: var(--blue-dark); font-size: 16px; padding: 10px 14px; }
         tr.group-row { cursor: pointer; }
@@ -859,6 +863,27 @@
         return Object.entries(currentQData || {}).filter(([, q]) => isActiveQ(qTopic(q), qSub(q))).map(([id]) => id);
     }
 
+    // הוצאה וחסימה של תלמיד מחדר ספציפי
+    document.addEventListener('click', async (e) => {
+        const el = e.target.closest('[data-act="kick-user"],[data-act="ban-user"],[data-act="unban-user"]');
+        if (!el) return;
+        const room = el.dataset.room, user = el.dataset.user, act = el.dataset.act;
+        try {
+            if (act === 'kick-user') {
+                if (!confirm(`להוציא את ${user} מחדר ${room}?\nהוא יחזור לדף הכניסה ויוכל להצטרף שוב.`)) return;
+                await update(ref(database), { [`rooms/${room}/kick/${user}`]: Date.now(), [`rooms/${room}/users/${user}`]: null });
+                toast(`🚪 ${user} הוצא מהחדר`);
+            } else if (act === 'ban-user') {
+                if (!confirm(`לחסום את ${user} בחדר ${room}?\nהוא יוצא מיד ולא יוכל להיכנס אליו שוב, עד שתבטל את החסימה.`)) return;
+                await update(ref(database), { [`rooms/${room}/banned/${user}`]: true, [`rooms/${room}/users/${user}`]: null });
+                toast(`⛔ ${user} נחסם בחדר ${room}`);
+            } else {
+                await remove(ref(database, `rooms/${room}/banned/${user}`));
+                toast(`↩️ החסימה של ${user} בוטלה`);
+            }
+        } catch (err) { toast('שגיאה', false); }
+    });
+
     function renderRoomsManager() {
         const container = $('roomsContainer');
         if (!activeRoomsData || Object.keys(activeRoomsData).length === 0) {
@@ -871,8 +896,11 @@
         Object.entries(activeRoomsData).forEach(([roomCode, roomData]) => {
             const users = roomData.users ? Object.keys(roomData.users) : [];
             const usersHtml = users.length
-                ? users.map(u => `<span class="room-user-chip">👤 ${esc(u)}</span>`).join('')
+                ? users.map(u => `<span class="room-user-chip">👤 ${esc(u)}<button type="button" class="chip-act" data-act="kick-user" data-room="${esc(roomCode)}" data-user="${esc(u)}" title="הוצא מהחדר" aria-label="הוצא את ${esc(u)} מהחדר">🚪</button><button type="button" class="chip-act" data-act="ban-user" data-room="${esc(roomCode)}" data-user="${esc(u)}" title="חסום כניסה לחדר" aria-label="חסום את ${esc(u)}">⛔</button></span>`).join('')
                 : `<span style="color: var(--text-muted); font-style: italic;">חדר ריק ממתין לתלמידים...</span>`;
+            const bannedNames = roomData.banned ? Object.keys(roomData.banned).filter(n => roomData.banned[n]) : [];
+            const bannedHtml = bannedNames.length
+                ? `<div class="banned-row">⛔ חסומים: ${bannedNames.map(n => `<span class="room-user-chip banned">${esc(n)}<button type="button" class="chip-act" data-act="unban-user" data-room="${esc(roomCode)}" data-user="${esc(n)}" title="בטל חסימה" aria-label="בטל חסימה של ${esc(n)}">↩️</button></span>`).join('')}</div>` : '';
             const submittedHtml = roomData.submitted
                 ? `<div style="margin-top: 10px; font-size: 14px; font-weight: bold; color: var(--success);">✅ הגשת התשובות הושלמה</div>` : '';
 
@@ -906,7 +934,7 @@
                         <span style="font-size: 14px; font-weight: bold; color: #4b5563; background: #f3f4f6; padding: 4px 10px; border-radius: 99px;">${users.length} תלמידים</span>
                     </div>
                     <div style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">${esc(ageText(roomData.createdAt))}</div>
-                    <div class="room-users">${usersHtml}${submittedHtml}</div>
+                    <div class="room-users">${usersHtml}${bannedHtml}${submittedHtml}</div>
                     ${authorsHtml}
                     ${progressHtml}
                 </div>
