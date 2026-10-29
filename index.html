@@ -191,6 +191,7 @@
         <button class="tab-btn active" onclick="switchTab('tab-live', this)">🔴 תשובות בלייב</button>
         <button class="tab-btn" onclick="switchTab('tab-rooms', this)">🏠 ניהול חדרים</button>
         <button class="tab-btn" onclick="switchTab('tab-manage', this)">📝 ניהול שאלות</button>
+        <button class="tab-btn" onclick="switchTab('tab-archive', this)">📚 ארכיון תלמידים</button>
         <button class="tab-btn" onclick="switchTab('tab-settings', this)">⚙️ שליטה וסנכרון</button>
     </div>
 
@@ -288,6 +289,37 @@
     </div>
 
     <!-- כרטיסיית שליטה וסנכרון -->
+    <div id="tab-archive" class="tab-content">
+        <div class="card" style="border-right: 5px solid #7c3aed;">
+            <h2 class="section-title">📚 שליחת תשובות קודמות לארכיון של תלמיד</h2>
+            <p class="muted" style="margin-bottom:14px;">בחרו חברותא, סמנו את התשובות ושלחו אותן ל"תשובות קודמות" של התלמידים לפי המייל שלהם (המייל לא מקבל כלום, הוא רק מפתח לארכיון). אפשר גם לכתוב משוב על כל תשובה, והתלמיד יראה אותו בארכיון.</p>
+            <div class="form-group">
+                <label for="arcPair">👥 חברותא / תלמיד:</label>
+                <input type="text" id="arcPair" list="arcPairList" autocomplete="off" placeholder="התחילו להקליד שם או בחרו מהרשימה...">
+                <datalist id="arcPairList"></datalist>
+            </div>
+            <div id="arcInfo" class="muted"></div>
+            <div id="arcTableWrap" style="display:none; margin-top:14px;">
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+                    <button type="button" id="arcSelAll" class="btn" style="padding:8px 16px; font-size:15px;">☑️ בחר הכל</button>
+                    <button type="button" id="arcSelNone" class="btn" style="padding:8px 16px; font-size:15px; background:var(--text-muted);">⬜ נקה בחירה</button>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table id="arcTable">
+                        <thead><tr><th style="width:36%;">נושא</th><th>שאלה ותשובה</th><th style="width:22%;">משוב</th></tr></thead>
+                        <tbody id="arcBody"></tbody>
+                    </table>
+                </div>
+                <div class="form-group" style="margin-top:18px;">
+                    <label for="arcEmails">📧 מיילים של התלמידים (מופרדים בפסיק, למשל של שני השותפים):</label>
+                    <input type="text" id="arcEmails" dir="ltr" style="text-align:left;" placeholder="a@gmail.com, b@gmail.com" autocomplete="off">
+                </div>
+                <button type="button" id="arcSend" class="btn btn-success">📚 שלח לארכיון</button>
+                <span id="arcStatus" class="status-msg"></span>
+            </div>
+        </div>
+    </div>
+
     <div id="tab-settings" class="tab-content">
         <div class="card" style="border-right: 5px solid var(--blue-dark);">
             <h2 class="section-title">👁️ בחירת נושאים להצגה לתלמידים</h2>
@@ -845,9 +877,10 @@
     onValue(ref(database, 'submissions'), (snapshot) => {
         currentSData = snapshot.val() || {};
         renderTeacherTable();
+        renderArcPairs(); renderArchiveTab();
     });
 
-    onValue(ref(database, 'feedback'), snap => { currentFData = snap.val() || {}; renderTeacherTable(); });
+    onValue(ref(database, 'feedback'), snap => { currentFData = snap.val() || {}; renderTeacherTable(); renderArchiveTab(); });
     onValue(ref(database, 'sessions'), snap => { sessionsData = snap.val() || {}; renderSessionSelect(); renderTeacherTable(); });
     onValue(ref(database, 'settings/currentSession'), snap => { currentSession = snap.val(); renderSessionSelect(); renderTeacherTable(); });
     setInterval(() => renderRoomsManager(), 30000);   // מרענן את "לפני X דקות" וזיהוי חוסר פעילות
@@ -944,6 +977,121 @@
     }
     const renderRoomsManagerDebounced = debounce(renderRoomsManager, 300);
     const renderLiveDebounced = debounce(() => renderTeacherTable(), 300);   // תלמידים מקלידים כל הזמן
+
+    // ---------- ארכיון תלמידים: שליחת תשובות קודמות + משוב ----------
+    // אותו מפתח בדיוק כמו בדף התלמידים: גיבוב של המייל (נשמר רק הגיבוב, לא הכתובת)
+    function sha256hex(str) {
+        const bytes = new TextEncoder().encode(str);
+        const primes = []; for (let n = 2; primes.length < 64; n++) if (primes.every(p => n % p)) primes.push(n);
+        const frac = x => ((x - Math.floor(x)) * 4294967296) | 0;
+        const K = primes.map(p => frac(Math.cbrt(p)));
+        let H = primes.slice(0, 8).map(p => frac(Math.sqrt(p)));
+        const l = bytes.length, padLen = ((l + 9 + 63) >> 6) << 6;
+        const m = new Uint8Array(padLen); m.set(bytes); m[l] = 0x80;
+        const dv = new DataView(m.buffer);
+        dv.setUint32(padLen - 4, (l * 8) >>> 0); dv.setUint32(padLen - 8, Math.floor(l * 8 / 4294967296));
+        const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+        for (let off = 0; off < padLen; off += 64) {
+            const w = new Array(64);
+            for (let i = 0; i < 16; i++) w[i] = dv.getUint32(off + i * 4);
+            for (let i = 16; i < 64; i++) {
+                const s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ (w[i - 15] >>> 3);
+                const s1 = rotr(w[i - 2], 17) ^ rotr(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+                w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
+            }
+            let [a, b, c, d, e, f, g, h] = H;
+            for (let i = 0; i < 64; i++) {
+                const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25), ch = (e & f) ^ (~e & g), t1 = (h + S1 + ch + K[i] + w[i]) | 0;
+                const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22), maj = (a & b) ^ (a & c) ^ (b & c), t2 = (S0 + maj) | 0;
+                h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+            }
+            H = [H[0] + a, H[1] + b, H[2] + c, H[3] + d, H[4] + e, H[5] + f, H[6] + g, H[7] + h].map(x => x | 0);
+        }
+        return H.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
+    }
+    const normEmail = e => String(e || '').trim().toLowerCase();
+    const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+    const archiveKeyOf = email => sha256hex('chavrusa:' + normEmail(email)).slice(0, 40);
+
+    const arcSelected = new Set();
+    let arcLastPair = null;
+
+    // כל התשובות שהוגשו בשם חברותא (מכל השיעורים). מפתח הרשומה = מפתח המשוב, כדי שהתלמיד יראה את המשוב בארכיון.
+    function arcCollect(pair) {
+        const map = new Map();
+        for (const [key, sub] of Object.entries(currentSData || {})) {
+            if ((sub.חברותא || '—') !== pair) continue;
+            const id = (sub.room && sub.questionId) ? `${sub.room}_${sub.questionId}` : key;
+            const ts = sub.timestamp || 0;
+            if (map.has(id) && map.get(id).ts >= ts) continue;
+            let q = sub.questionId && currentQData && currentQData[sub.questionId];
+            if (!q) q = Object.values(currentQData || {}).find(x => x.שאלה === sub.שאלה);
+            let topic, sb;
+            if (q) { topic = qTopic(q); sb = qSub(q); }
+            else { const parts = String(sub.נושא || 'כללי').split(' – '); topic = parts[0]; sb = parts[1] || ''; }
+            map.set(id, { id, topic, sub: sb, q: sub.שאלה || '', a: sub.תשובה || '', pair, ts, room: sub.room || '', qid: sub.questionId || '' });
+        }
+        return [...map.values()].sort((a, b) => cmp(a.topic, b.topic) || cmp(a.sub, b.sub) || a.ts - b.ts);
+    }
+
+    function renderArcPairs() {
+        const counts = {};
+        Object.values(currentSData || {}).forEach(s => { const p = s.חברותא || '—'; counts[p] = (counts[p] || 0) + 1; });
+        $('arcPairList').innerHTML = Object.keys(counts).sort(cmp).map(p => `<option value="${esc(p)}">${esc(p)} (${counts[p]} תשובות)</option>`).join('');
+    }
+
+    function renderArchiveTab() {
+        const pair = $('arcPair').value.trim();
+        const entries = pair ? arcCollect(pair) : [];
+        if (pair !== arcLastPair) { arcLastPair = pair; arcSelected.clear(); entries.forEach(e => arcSelected.add(e.id)); }
+        $('arcTableWrap').style.display = entries.length ? 'block' : 'none';
+        $('arcInfo').textContent = !pair ? '' : entries.length ? `${entries.length} תשובות שהוגשו. סמנו מה לשלוח.` : 'לא נמצאו הגשות בשם הזה. בחרו שם מהרשימה.';
+        const body = $('arcBody');
+        body.innerHTML = '';
+        entries.forEach(e => {
+            const fb = currentFData[e.id];
+            const info = fb ? (FB[fb.status] || ['💬', 'הערה']) : null;
+            const short = e.a.length > 200 ? e.a.slice(0, 200) + '…' : e.a;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><label class="sel-wrap"><input type="checkbox" class="arc-cb" data-id="${esc(e.id)}" ${arcSelected.has(e.id) ? 'checked' : ''} aria-label="שלח תשובה זו"> ${topicCell(e)}</label></td>
+                <td><div style="font-weight:700; margin-bottom:4px;">${esc(e.q)}</div><div style="white-space:pre-wrap; color:var(--text-muted);" title="${esc(e.a)}">${esc(short)}</div></td>
+                <td>${fb ? `<span class="fb-badge fb-${esc(fb.status || 'note')}">${info[0]} ${esc(info[1])}</span> <span style="font-size:13px;">${esc(fb.note || '')}</span><br>` : ''}
+                    <button type="button" class="fb-btn" data-act="feedback" data-key="${esc(e.id)}" data-pair="${esc(e.pair)}" data-q="${esc(e.q)}">${fb ? '✏️ ערוך משוב' : '💬 כתוב משוב'}</button></td>`;
+            body.appendChild(tr);
+        });
+    }
+
+    $('arcPair').addEventListener('input', renderArchiveTab);
+    $('arcSelAll').addEventListener('click', () => { arcCollect($('arcPair').value.trim()).forEach(e => arcSelected.add(e.id)); renderArchiveTab(); });
+    $('arcSelNone').addEventListener('click', () => { arcSelected.clear(); renderArchiveTab(); });
+    document.addEventListener('change', e => {
+        if (!e.target.classList?.contains('arc-cb')) return;
+        e.target.checked ? arcSelected.add(e.target.dataset.id) : arcSelected.delete(e.target.dataset.id);
+    });
+    $('arcSend').addEventListener('click', async function () {
+        const pair = $('arcPair').value.trim();
+        const entries = arcCollect(pair).filter(e => arcSelected.has(e.id));
+        const emails = [...new Set($('arcEmails').value.split(/[\s,;]+/).map(normEmail).filter(Boolean))];
+        const status = $('arcStatus');
+        if (!entries.length) { toast('סמנו לפחות תשובה אחת', false); return; }
+        if (!emails.length || emails.some(em => !validEmail(em))) { toast('בדקו את כתובות המייל', false); return; }
+        this.disabled = true; status.textContent = 'שולח...'; status.style.color = 'orange';
+        const updates = {};
+        emails.forEach(em => {
+            const k = archiveKeyOf(em);
+            entries.forEach(e => { updates[`archive/${k}/entries/${e.id}`] = { topic: e.topic, sub: e.sub, q: e.q, a: e.a, pair: e.pair, ts: e.ts, room: e.room, qid: e.qid }; });
+        });
+        try {
+            await update(ref(database), updates);
+            const sent = entries.length === 1 ? 'נשלחה תשובה אחת' : `נשלחו ${entries.length} תשובות`;
+            const to = emails.length === 1 ? 'לארכיון אחד' : `ל-${emails.length} ארכיונים`;
+            status.textContent = `✅ ${sent} ${to}`; status.style.color = 'green';
+            toast(`📚 ${sent} ${to}`);
+            setTimeout(() => status.textContent = '', 5000);
+        } catch (err) { status.textContent = '❌ שגיאה בשליחה'; status.style.color = 'red'; }
+        this.disabled = false;
+    });
 
     // ---------- ניהול שאלות ותשובות: נושא ← תת-נושא ← שאלות (נפתח בלחיצה) ----------
     const sortQ = (a, b) => cmp(a.topic, b.topic) || cmp(a.sub, b.sub) || a.ts - b.ts;
