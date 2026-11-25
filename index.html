@@ -113,6 +113,16 @@
         .room-user-chip { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 4px 12px; border-radius: 99px; font-size: 14px; font-weight: bold; margin-bottom: 6px; margin-left: 6px; }
         .room-user-chip.banned { background: #fee2e2; color: #991b1b; }
         .banned-row { margin-top: 8px; font-size: 14px; font-weight: 800; color: #991b1b; }
+        .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+        .filters-grid select, .filters-grid input { width: 100%; }
+        #arcTopic, #arcSub, #subTopic, #subSub { padding: 10px 12px; border-radius: 10px; border: 2px solid var(--border); font-family: inherit; font-size: 15px; font-weight: 700; background: #fff; }
+        button.preset-btn { all: unset; cursor: pointer; font-size: 13px; font-weight: 800; color: var(--blue-dark); background: #e0f2fe; padding: 5px 14px; border-radius: 99px; }
+        button.preset-btn:hover { background: #bae6fd; }
+        button.vis-btn { all: unset; cursor: pointer; font-size: 13px; font-weight: 800; padding: 3px 12px; border-radius: 99px; }
+        button.vis-all { background: #dcfce7; color: #166534; } button.vis-some { background: #fef3c7; color: #92400e; } button.vis-none { background: #e5e7eb; color: #475569; }
+        .arc-box { margin-top: 18px; background: #f8fbff; border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+        label.arc-also { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; color: #991b1b; cursor: pointer; }
+        details.sheets-box summary { list-style-position: inside; }
         button.chip-act { all: unset; cursor: pointer; margin-inline-start: 6px; font-size: 13px; }
         button.chip-act:hover { transform: scale(1.25); }
 
@@ -192,7 +202,6 @@
         <button class="tab-btn" onclick="switchTab('tab-rooms', this)">🏠 ניהול חדרים</button>
         <button class="tab-btn" onclick="switchTab('tab-manage', this)">📝 ניהול שאלות</button>
         <button class="tab-btn" onclick="switchTab('tab-archive', this)">📚 ארכיון תלמידים</button>
-        <button class="tab-btn" onclick="switchTab('tab-settings', this)">⚙️ שליטה וסנכרון</button>
     </div>
 
     <!-- כרטיסיית תשובות בלייב -->
@@ -244,6 +253,16 @@
 
     <!-- כרטיסיית ניהול שאלות -->
     <div id="tab-manage" class="tab-content">
+        <div class="card" style="border-right: 5px solid var(--blue-dark);">
+            <h2 class="section-title">👁️ מה מוצג לתלמידים</h2>
+            <p class="muted">ליד כל נושא ותת-נושא בטבלה שמתחת יש כפתור "👁️ מוצג" / "🚫 מוסתר". לחיצה עליו מציגה או מסתירה אותו בדף התלמידים.</p>
+            <p style="margin-top:10px; font-weight:700;">מוצג כעת לתלמידים: <span id="currentTopicDisplay" style="color: var(--success);">טוען...</span></p>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+                <button type="button" id="btnShowAll" class="btn btn-success" style="padding:8px 16px; font-size:15px;">👁️ הצג הכל לתלמידים</button>
+                <button type="button" id="btnHideAll" class="btn" style="padding:8px 16px; font-size:15px; background:var(--text-muted);">🚫 הסתר הכל</button>
+            </div>
+        </div>
+
         <div class="card" style="border-right: 5px solid var(--success);">
             <h2 class="section-title">➕ הוספת שאלות ללמידה</h2>
             <div class="form-group">
@@ -286,69 +305,66 @@
                 <tbody id="questionsBody"></tbody>
             </table>
         </div>
+
+        <div class="card" style="border-right: 5px solid var(--success);">
+            <details class="sheets-box">
+                <summary class="section-title" style="cursor:pointer; margin:0;">📊 סנכרון ל-Google Sheets</summary>
+                <div style="display: flex; gap: 10px; align-items: center; margin: 14px 0 10px; flex-wrap:wrap;">
+                    <button id="btnExportSheets" class="btn btn-success">🚀 ייצא הכל והפעל סנכרון</button>
+                    <button id="btnStopSync" class="btn btn-danger" style="display: none;">🛑 עצור סנכרון</button>
+                    <span id="sheetsStatus" class="status-msg"></span>
+                </div>
+                <div style="font-weight: 600; color: var(--text-muted);">
+                    סנכרון אחרון: <span id="syncTimeDisplay" style="color:var(--text);">טרם בוצע מאז פתיחת הדפדפן</span>
+                </div>
+                <div id="syncIndicator" style="display:none; margin-top: 15px; background: #ecfdf5; padding: 12px; border-radius: 10px; color: var(--success); font-weight: 800;">
+                    <span class="live-indicator">●</span> הסנכרון האוטומטי פעיל.
+                </div>
+            </details>
+        </div>
     </div>
 
-    <!-- כרטיסיית שליטה וסנכרון -->
     <div id="tab-archive" class="tab-content">
         <div class="card" style="border-right: 5px solid #7c3aed;">
-            <h2 class="section-title">📚 שליחת תשובות קודמות לארכיון של תלמיד</h2>
-            <p class="muted" style="margin-bottom:14px;">בחרו חברותא, סמנו את התשובות ושלחו אותן ל"תשובות קודמות" של התלמידים לפי המייל שלהם (המייל לא מקבל כלום, הוא רק מפתח לארכיון). אפשר גם לכתוב משוב על כל תשובה, והתלמיד יראה אותו בארכיון.</p>
-            <div class="form-group">
-                <label for="arcPair">👥 חברותא / תלמיד:</label>
-                <input type="text" id="arcPair" list="arcPairList" autocomplete="off" placeholder="התחילו להקליד שם או בחרו מהרשימה...">
-                <datalist id="arcPairList"></datalist>
+            <h2 class="section-title">📚 ארכיון תלמידים</h2>
+            <p class="muted" style="margin-bottom:14px;">כל התשובות שהוגשו. סננו לפי חברותא, נושא, תת-נושא ותאריך, ואז אפשר לכתוב משוב, לשלוח תשובות ל"תשובות קודמות" של תלמיד (לפי המייל שלו, שלא מקבל כלום), או למחוק.</p>
+            <div class="filters-grid">
+                <div class="form-group"><label for="arcPair">👥 חברותא (אפשר חלק מהשם):</label><input type="text" id="arcPair" list="arcPairList" autocomplete="off" placeholder="הכל"><datalist id="arcPairList"></datalist></div>
+                <div class="form-group"><label for="arcTopic">📚 נושא:</label><select id="arcTopic"></select></div>
+                <div class="form-group"><label for="arcSub">📌 תת-נושא:</label><select id="arcSub"></select></div>
+                <div class="form-group"><label for="arcBefore">📅 הגשות לפני תאריך:</label><input type="date" id="arcBefore"></div>
             </div>
-            <div id="arcInfo" class="muted"></div>
-            <div id="arcTableWrap" style="display:none; margin-top:14px;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; align-items:center;">
+                <span class="muted">קיצור:</span>
+                <button type="button" class="preset-btn" data-days="7">מעל שבוע</button>
+                <button type="button" class="preset-btn" data-days="30">מעל חודש</button>
+                <button type="button" class="preset-btn" data-days="90">מעל 3 חודשים</button>
+                <button type="button" class="preset-btn" data-days="0">נקה תאריך</button>
+            </div>
+            <div id="arcInfo" class="muted" style="margin-bottom:10px;"></div>
+            <div id="arcTableWrap" style="display:none;">
                 <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
-                    <button type="button" id="arcSelAll" class="btn" style="padding:8px 16px; font-size:15px;">☑️ בחר הכל</button>
+                    <button type="button" id="arcSelAll" class="btn" style="padding:8px 16px; font-size:15px;">☑️ בחר את כל המסוננים</button>
                     <button type="button" id="arcSelNone" class="btn" style="padding:8px 16px; font-size:15px; background:var(--text-muted);">⬜ נקה בחירה</button>
                 </div>
                 <div style="overflow-x:auto;">
                     <table id="arcTable">
-                        <thead><tr><th style="width:36%;">נושא</th><th>שאלה ותשובה</th><th style="width:22%;">משוב</th></tr></thead>
+                        <thead><tr><th style="width:26%;">חברותא ונושא</th><th>שאלה ותשובה</th><th style="width:20%;">משוב</th><th style="width:11%;">תאריך</th><th style="width:7%;">מחק</th></tr></thead>
                         <tbody id="arcBody"></tbody>
                     </table>
                 </div>
-                <div class="form-group" style="margin-top:18px;">
-                    <label for="arcEmails">📧 מיילים של התלמידים (מופרדים בפסיק, למשל של שני השותפים):</label>
-                    <input type="text" id="arcEmails" dir="ltr" style="text-align:left;" placeholder="a@gmail.com, b@gmail.com" autocomplete="off">
+                <div class="arc-box">
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label for="arcEmails">📧 מיילים של התלמידים (מופרדים בפסיק, למשל של שני השותפים):</label>
+                        <input type="text" id="arcEmails" dir="ltr" style="text-align:left;" placeholder="a@gmail.com, b@gmail.com" autocomplete="off">
+                    </div>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                        <button type="button" id="arcSend" class="btn btn-success">📚 שלח את המסומנות לארכיון של התלמיד</button>
+                        <button type="button" id="arcDelete" class="btn btn-danger">🗑️ מחק את המסומנות</button>
+                        <label class="arc-also"><input type="checkbox" id="arcAlsoPersonal"> מחק גם מהארכיון האישי של המיילים שלמעלה</label>
+                    </div>
+                    <span id="arcStatus" class="status-msg"></span>
                 </div>
-                <button type="button" id="arcSend" class="btn btn-success">📚 שלח לארכיון</button>
-                <span id="arcStatus" class="status-msg"></span>
-            </div>
-        </div>
-    </div>
-
-    <div id="tab-settings" class="tab-content">
-        <div class="card" style="border-right: 5px solid var(--blue-dark);">
-            <h2 class="section-title">👁️ בחירת נושאים להצגה לתלמידים</h2>
-            <p style="color:var(--text-muted); font-weight:600; margin-bottom:15px;">
-                סמנו אילו נושאים יוצגו כעת במסכי התלמידים.
-            </p>
-            <div id="topicsContainer" class="topics-grid"><span style="color:#777;">טוען נושאים...</span></div>
-            <div style="display: flex; gap: 10px; align-items: center; margin-top:15px;">
-                <button id="setActiveTopicBtn" class="btn">✅ עדכן נושאים פעילים</button>
-                <button id="selectAllBtn" class="btn" style="background:var(--text-muted);">בחר הכל</button>
-                <span id="activeTopicStatus" class="status-msg"></span>
-            </div>
-            <p style="margin-top: 15px; font-weight: 700;">
-                מוצג כעת לתלמידים: <span id="currentTopicDisplay" style="color: var(--success);">טוען...</span>
-            </p>
-        </div>
-
-        <div class="card" style="border-right: 5px solid var(--success);">
-            <h2 class="section-title">📊 סנכרון ל-Google Sheets</h2>
-            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
-                <button id="btnExportSheets" class="btn btn-success">🚀 ייצא הכל והפעל סנכרון</button>
-                <button id="btnStopSync" class="btn btn-danger" style="display: none;">🛑 עצור סנכרון</button>
-                <span id="sheetsStatus" class="status-msg"></span>
-            </div>
-            <div style="font-weight: 600; color: var(--text-muted);">
-                סנכרון אחרון: <span id="syncTimeDisplay" style="color:var(--text);">טרם בוצע מאז פתיחת הדפדפן</span>
-            </div>
-            <div id="syncIndicator" style="display:none; margin-top: 15px; background: #ecfdf5; padding: 12px; border-radius: 10px; color: var(--success); font-weight: 800;">
-                <span class="live-indicator">●</span> הסנכרון האוטומטי פעיל.
             </div>
         </div>
     </div>
@@ -742,128 +758,57 @@
             .finally(() => { this.disabled = false; });
     });
 
-    // ---------- נושאים פעילים (נושא ← תתי-נושאים) ----------
-    function updateTopicBox(g, topic) {
-        const tcb = g.querySelector('input[data-role="topic"]');
-        const subs = [...g.querySelectorAll('input[data-sub]')];
-        if (!subs.length) { tcb.checked = isActiveQ(topic, ''); tcb.indeterminate = false; return; }
-        const n = subs.filter(c => c.checked).length;
-        tcb.checked = n === subs.length;
-        tcb.indeterminate = n > 0 && n < subs.length;
+    // ---------- מה מוצג לתלמידים (נושא ← תתי-נושאים) ----------
+    // מצב הצגה של נושא (sub לא מוגדר) או של תת-נושא: all / some / none
+    function visState(topic, sub) {
+        const subs = [...(topicTree()[topic] || [])];
+        if (sub !== undefined) return isActiveQ(topic, sub) ? 'all' : 'none';
+        const n = subs.filter(s => isActiveQ(topic, s)).length;
+        return n === 0 ? 'none' : n === subs.length ? 'all' : 'some';
     }
 
-    function syncTopicChecks() {
-        document.querySelectorAll('#topicsContainer .topic-group').forEach(g => {
-            const topic = g.dataset.topic;
-            g.querySelectorAll('input[data-sub]').forEach(cb => { cb.checked = isActiveQ(topic, cb.dataset.sub); });
-            updateTopicBox(g, topic);
-        });
-    }
-
-    $('topicsContainer').addEventListener('change', e => {
-        const cb = e.target, g = cb.closest('.topic-group');
-        if (!g) return;
-        if (cb.dataset.role === 'topic') {
-            cb.indeterminate = false;
-            g.querySelectorAll('input[data-sub]').forEach(c => { c.checked = cb.checked; });
-        } else {
-            updateTopicBox(g, g.dataset.topic);
-        }
-    });
-
-    $('selectAllBtn').addEventListener('click', () => {
-        document.querySelectorAll('#topicsContainer input[type="checkbox"]').forEach(cb => { cb.checked = true; cb.indeterminate = false; });
-    });
-
-    $('setActiveTopicBtn').addEventListener('click', () => {
-        const selected = [];
-        document.querySelectorAll('#topicsContainer .topic-group').forEach(g => {
-            const topic = g.dataset.topic;
-            const tcb = g.querySelector('input[data-role="topic"]');
-            if (tcb.checked && !tcb.indeterminate) selected.push(topic);   // נושא שלם: גם תתי-נושא שיתווספו בעתיד יוצגו
-            else g.querySelectorAll('input[data-sub]:checked').forEach(cb => selected.push(topic + SEP + cb.dataset.sub));
-        });
-        const statusBox = $('activeTopicStatus');
-        set(ref(database, 'settings/activeTopics'), selected.length === 0 ? ["__NONE__"] : selected)
-            .then(() => {
-                statusBox.innerText = "✅ עודכן לתלמידים!"; statusBox.style.color = "green";
-                setTimeout(() => statusBox.innerText = "", 3000);
-            }).catch(() => { statusBox.innerText = "❌ שגיאה."; statusBox.style.color = "red"; });
-    });
-
-    function updateUniqueTopics() {
-        if (!currentQData) return;
+    async function setVisibility(topic, sub, visible) {
         const tree = topicTree();
-        const topics = Object.keys(tree).sort(cmp);
-        const sig = JSON.stringify(topics.map(t => [t, [...tree[t]].sort(cmp)]));
-        if (sig === knownSig) return;
-
-        // שומרים בחירות שהמורה סימן ועדיין לא שמר
-        const prevSub = new Map(), prevTopic = new Map();
-        document.querySelectorAll('#topicsContainer input[data-sub]').forEach(cb => prevSub.set(cb.closest('.topic-group').dataset.topic + SEP + cb.dataset.sub, cb.checked));
-        document.querySelectorAll('#topicsContainer input[data-role="topic"]').forEach(cb => prevTopic.set(cb.closest('.topic-group').dataset.topic, cb.checked));
-
-        const container = $('topicsContainer');
-        container.innerHTML = '';
-        topics.forEach(topic => {
-            const subs = [...tree[topic]].sort(cmp);
-            const g = document.createElement('div');
-            g.className = 'topic-group'; g.dataset.topic = topic;
-
-            const tl = document.createElement('label');
-            tl.className = 'topic-checkbox-label topic-main';
-            const tcb = document.createElement('input');
-            tcb.type = 'checkbox'; tcb.dataset.role = 'topic';
-            const name = document.createElement('strong');
-            name.textContent = topic;
-            tl.append(tcb, name);
-            g.appendChild(tl);
-
-            if (subs.some(Boolean)) {
-                const list = document.createElement('div');
-                list.className = 'sub-list';
-                subs.forEach(sub => {
-                    const key = topic + SEP + sub;
-                    const l = document.createElement('label');
-                    l.className = 'topic-checkbox-label';
-                    const cb = document.createElement('input');
-                    cb.type = 'checkbox'; cb.dataset.sub = sub;
-                    cb.checked = prevSub.has(key) ? prevSub.get(key) : isActiveQ(topic, sub);
-                    l.append(cb, sub || 'ללא תת-נושא');
-                    list.appendChild(l);
-                });
-                g.appendChild(list);
-                updateTopicBox(g, topic);
-            } else {
-                tcb.checked = prevTopic.has(topic) ? prevTopic.get(topic) : isActiveQ(topic, '');
-            }
-            container.appendChild(g);
+        const state = {};
+        Object.keys(tree).forEach(t => { state[t] = {}; tree[t].forEach(s => { state[t][s] = isActiveQ(t, s); }); });
+        if (state[topic]) {
+            if (sub === undefined) Object.keys(state[topic]).forEach(s => { state[topic][s] = visible; });
+            else state[topic][sub] = visible;
+        }
+        const list = []; let allOn = true;
+        Object.keys(state).forEach(t => {
+            const subs = Object.keys(state[t]), on = subs.filter(s => state[t][s]);
+            if (on.length === subs.length) list.push(t);                 // נושא שלם (גם תתי-נושא עתידיים יוצגו)
+            else { allOn = false; on.forEach(s => list.push(t + SEP + s)); }
         });
-        knownSig = sig;
-        refreshDatalists();
+        const value = Object.keys(state).length && allOn ? ['הכל'] : (list.length ? list : ['__NONE__']);
+        await set(ref(database, 'settings/activeTopics'), value);
     }
 
-    function updateDisplayAndCheckboxes() {
+    $('btnShowAll').addEventListener('click', async () => { try { await set(ref(database, 'settings/activeTopics'), ['הכל']); toast('👁️ כל הנושאים מוצגים לתלמידים'); } catch (e) { toast('שגיאה', false); } });
+    $('btnHideAll').addEventListener('click', async () => { try { await set(ref(database, 'settings/activeTopics'), ['__NONE__']); toast('🚫 כל הנושאים מוסתרים מהתלמידים'); } catch (e) { toast('שגיאה', false); } });
+
+    function updateVisibilityDisplay() {
         const displaySpan = $('currentTopicDisplay');
         if (currentActiveTopics.includes("הכל")) displaySpan.innerText = "כל הנושאים";
         else if (currentActiveTopics.includes("__NONE__") || currentActiveTopics.length === 0) displaySpan.innerText = "אף נושא";
         else displaySpan.innerText = currentActiveTopics
             .map(x => x.includes(SEP) ? x.split(SEP).map(p => p || 'ללא תת-נושא').join(' › ') : x).join(', ');
-        syncTopicChecks();
+        renderQuestionsManager();
     }
 
     // ---------- מאזינים בזמן אמת ----------
     onValue(ref(database, 'settings/activeTopics'), (snapshot) => {
         const val = snapshot.val();
         currentActiveTopics = val ? (Array.isArray(val) ? val : [val]) : ["הכל"];   // גם כשלא הוגדר דבר
-        updateDisplayAndCheckboxes();
+        updateVisibilityDisplay();
         renderTeacherTable();
         renderRoomsManagerDebounced();
     });
 
     onValue(ref(database, 'questions'), (snapshot) => {
         currentQData = snapshot.val() || {};
-        updateUniqueTopics();
+        refreshDatalists();
         renderAll();
         renderRoomsManagerDebounced();
     });
@@ -978,7 +923,7 @@
     const renderRoomsManagerDebounced = debounce(renderRoomsManager, 300);
     const renderLiveDebounced = debounce(() => renderTeacherTable(), 300);   // תלמידים מקלידים כל הזמן
 
-    // ---------- ארכיון תלמידים: שליחת תשובות קודמות + משוב ----------
+    // ---------- ארכיון תלמידים: סינון, משוב, שליחה לארכיון אישי ומחיקה ----------
     // אותו מפתח בדיוק כמו בדף התלמידים: גיבוב של המייל (נשמר רק הגיבוב, לא הכתובת)
     function sha256hex(str) {
         const bytes = new TextEncoder().encode(str);
@@ -1013,26 +958,40 @@
     const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
     const archiveKeyOf = email => sha256hex('chavrusa:' + normEmail(email)).slice(0, 40);
 
-    const arcSelected = new Set();
-    let arcLastPair = null;
-
-    // כל התשובות שהוגשו בשם חברותא (מכל השיעורים). מפתח הרשומה = מפתח המשוב, כדי שהתלמיד יראה את המשוב בארכיון.
-    function arcCollect(pair) {
-        const map = new Map();
-        for (const [key, sub] of Object.entries(currentSData || {})) {
-            if ((sub.חברותא || '—') !== pair) continue;
-            const id = (sub.room && sub.questionId) ? `${sub.room}_${sub.questionId}` : key;
-            const ts = sub.timestamp || 0;
-            if (map.has(id) && map.get(id).ts >= ts) continue;
-            let q = sub.questionId && currentQData && currentQData[sub.questionId];
-            if (!q) q = Object.values(currentQData || {}).find(x => x.שאלה === sub.שאלה);
-            let topic, sb;
-            if (q) { topic = qTopic(q); sb = qSub(q); }
-            else { const parts = String(sub.נושא || 'כללי').split(' – '); topic = parts[0]; sb = parts[1] || ''; }
-            map.set(id, { id, topic, sub: sb, q: sub.שאלה || '', a: sub.תשובה || '', pair, ts, room: sub.room || '', qid: sub.questionId || '' });
-        }
-        return [...map.values()].sort((a, b) => cmp(a.topic, b.topic) || cmp(a.sub, b.sub) || a.ts - b.ts);
+    const NONE_SUB = '__none__';
+    // נושא ותת-נושא של הגשה: לפי השאלה (id או נוסח), ואם נמחקה, לפי התווית "נושא – תת-נושא"
+    function subTopicSub(sub) {
+        let q = sub.questionId && currentQData && currentQData[sub.questionId];
+        if (!q) q = Object.values(currentQData || {}).find(x => x.שאלה === sub.שאלה);
+        if (q) return { topic: qTopic(q), sub: qSub(q) };
+        const parts = String(sub.נושא || 'כללי').split(' – ');
+        return { topic: parts[0], sub: parts[1] || '' };
     }
+    function fillSelect(sel, values, firstLabel, extra) {
+        const cur = sel.value;
+        sel.innerHTML = `<option value="">${firstLabel}</option>` + (extra || '') + values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+        sel.value = [...sel.options].some(o => o.value === cur) ? cur : '';
+    }
+    const matchTS = (e, topic, sb) => (!topic || e.topic === topic) && (!sb || (sb === NONE_SUB ? !e.sub : e.sub === sb));
+
+    const arcSelected = new Set();   // מפתחות הגשות מסומנות
+    let arcLastSig = null;
+    const ARC_LIMIT = 300;
+
+    // מפתח id = מפתח המשוב והארכיון האישי (חדר+שאלה; להגשות ישנות: מפתח ההגשה)
+    function arcAll() {
+        return Object.entries(currentSData || {}).map(([key, s]) => {
+            const { topic, sub } = subTopicSub(s);
+            const id = (s.room && s.questionId) ? `${s.room}_${s.questionId}` : key;
+            return { key, id, pair: s.חברותא || '—', topic, sub, q: s.שאלה || '', a: s.תשובה || '', ts: s.timestamp || 0, room: s.room || '', qid: s.questionId || '' };
+        });
+    }
+    function arcFiltered(all) {
+        const pair = $('arcPair').value.trim().toLowerCase();
+        const before = $('arcBefore').value ? new Date($('arcBefore').value + 'T00:00:00').getTime() : 0;
+        return all.filter(e => (!pair || e.pair.toLowerCase().includes(pair)) && matchTS(e, $('arcTopic').value, $('arcSub').value) && (!before || e.ts < before));
+    }
+    const arcSorted = list => list.sort((a, b) => cmp(a.pair, b.pair) || cmp(a.topic, b.topic) || cmp(a.sub, b.sub) || b.ts - a.ts);
 
     function renderArcPairs() {
         const counts = {};
@@ -1041,56 +1000,117 @@
     }
 
     function renderArchiveTab() {
-        const pair = $('arcPair').value.trim();
-        const entries = pair ? arcCollect(pair) : [];
-        if (pair !== arcLastPair) { arcLastPair = pair; arcSelected.clear(); entries.forEach(e => arcSelected.add(e.id)); }
-        $('arcTableWrap').style.display = entries.length ? 'block' : 'none';
-        $('arcInfo').textContent = !pair ? '' : entries.length ? `${entries.length} תשובות שהוגשו. סמנו מה לשלוח.` : 'לא נמצאו הגשות בשם הזה. בחרו שם מהרשימה.';
+        const all = arcAll();
+        fillSelect($('arcTopic'), [...new Set(all.map(e => e.topic))].sort(cmp), 'כל הנושאים');
+        const subs = [...new Set(all.filter(e => !$('arcTopic').value || e.topic === $('arcTopic').value).map(e => e.sub).filter(Boolean))].sort(cmp);
+        fillSelect($('arcSub'), subs, 'כל תתי-הנושא', `<option value="${NONE_SUB}">ללא תת-נושא</option>`);
+        const list = arcSorted(arcFiltered(all));
+        // שינוי סינון מאפס את הסימון, כדי שלא יימחקו או יישלחו בטעות שורות שלא מוצגות
+        const sig = [$('arcPair').value, $('arcTopic').value, $('arcSub').value, $('arcBefore').value].join('|');
+        if (sig !== arcLastSig) { arcLastSig = sig; arcSelected.clear(); }
+        for (const k of [...arcSelected]) if (!currentSData || !currentSData[k]) arcSelected.delete(k);
+        const visible = new Set(list.map(e => e.key));
+        const marked = [...arcSelected].filter(k => visible.has(k)).length;
+        $('arcInfo').textContent = all.length ? `${list.length} מתוך ${all.length} תשובות תואמות לסינון · ${marked} מסומנות${list.length > ARC_LIMIT ? ` · מוצגות ${ARC_LIMIT} הראשונות` : ''}` : 'עדיין לא הוגשו תשובות.';
+        $('arcTableWrap').style.display = list.length ? 'block' : 'none';
         const body = $('arcBody');
         body.innerHTML = '';
-        entries.forEach(e => {
+        list.slice(0, ARC_LIMIT).forEach(e => {
             const fb = currentFData[e.id];
             const info = fb ? (FB[fb.status] || ['💬', 'הערה']) : null;
             const short = e.a.length > 200 ? e.a.slice(0, 200) + '…' : e.a;
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><label class="sel-wrap"><input type="checkbox" class="arc-cb" data-id="${esc(e.id)}" ${arcSelected.has(e.id) ? 'checked' : ''} aria-label="שלח תשובה זו"> ${topicCell(e)}</label></td>
+                <td><label class="sel-wrap"><input type="checkbox" class="arc-cb" data-key="${esc(e.key)}" ${arcSelected.has(e.key) ? 'checked' : ''} aria-label="סמן תשובה זו">
+                    <span><b>👥 ${esc(e.pair)}</b><br>${topicCell(e)}</span></label></td>
                 <td><div style="font-weight:700; margin-bottom:4px;">${esc(e.q)}</div><div style="white-space:pre-wrap; color:var(--text-muted);" title="${esc(e.a)}">${esc(short)}</div></td>
                 <td>${fb ? `<span class="fb-badge fb-${esc(fb.status || 'note')}">${info[0]} ${esc(info[1])}</span> <span style="font-size:13px;">${esc(fb.note || '')}</span><br>` : ''}
-                    <button type="button" class="fb-btn" data-act="feedback" data-key="${esc(e.id)}" data-pair="${esc(e.pair)}" data-q="${esc(e.q)}">${fb ? '✏️ ערוך משוב' : '💬 כתוב משוב'}</button></td>`;
+                    <button type="button" class="fb-btn" data-act="feedback" data-key="${esc(e.id)}" data-pair="${esc(e.pair)}" data-q="${esc(e.q)}">${fb ? '✏️ ערוך משוב' : '💬 כתוב משוב'}</button></td>
+                <td style="font-size:13px;">${e.ts ? esc(new Date(e.ts).toLocaleString('he-IL')) : ''}</td>
+                <td style="text-align:center;"><button type="button" class="btn-icon" data-act="del-arc" data-key="${esc(e.key)}" title="מחק תשובה זו" aria-label="מחק תשובה זו">🗑️</button></td>`;
             body.appendChild(tr);
         });
     }
 
-    $('arcPair').addEventListener('input', renderArchiveTab);
-    $('arcSelAll').addEventListener('click', () => { arcCollect($('arcPair').value.trim()).forEach(e => arcSelected.add(e.id)); renderArchiveTab(); });
+    const isoDaysAgo = n => { const t = new Date(Date.now() - n * 86400000); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; };
+    ['arcPair', 'arcBefore'].forEach(id => $(id).addEventListener('input', renderArchiveTab));
+    ['arcTopic', 'arcSub'].forEach(id => $(id).addEventListener('change', renderArchiveTab));
+    document.querySelectorAll('.preset-btn').forEach(b => b.addEventListener('click', () => {
+        const n = parseInt(b.dataset.days, 10);
+        $('arcBefore').value = n ? isoDaysAgo(n) : '';
+        renderArchiveTab();
+    }));
+    $('arcSelAll').addEventListener('click', () => { arcFiltered(arcAll()).forEach(e => arcSelected.add(e.key)); renderArchiveTab(); });
     $('arcSelNone').addEventListener('click', () => { arcSelected.clear(); renderArchiveTab(); });
     document.addEventListener('change', e => {
         if (!e.target.classList?.contains('arc-cb')) return;
-        e.target.checked ? arcSelected.add(e.target.dataset.id) : arcSelected.delete(e.target.dataset.id);
+        e.target.checked ? arcSelected.add(e.target.dataset.key) : arcSelected.delete(e.target.dataset.key);
+        renderArchiveTab();
     });
+
+    const arcEmailList = () => [...new Set($('arcEmails').value.split(/[\s,;]+/).map(normEmail).filter(Boolean))];
+    const arcSelectedEntries = () => {   // רק מה שמוצג כרגע בסינון
+        const vis = new Map(arcFiltered(arcAll()).map(e => [e.key, e]));
+        return [...arcSelected].filter(k => vis.has(k)).map(k => vis.get(k));
+    };
+
     $('arcSend').addEventListener('click', async function () {
-        const pair = $('arcPair').value.trim();
-        const entries = arcCollect(pair).filter(e => arcSelected.has(e.id));
-        const emails = [...new Set($('arcEmails').value.split(/[\s,;]+/).map(normEmail).filter(Boolean))];
+        const sel = arcSelectedEntries();
+        const emails = arcEmailList();
         const status = $('arcStatus');
-        if (!entries.length) { toast('סמנו לפחות תשובה אחת', false); return; }
+        if (!sel.length) { toast('סמנו לפחות תשובה אחת', false); return; }
+        if (new Set(sel.map(e => e.pair)).size > 1) { toast('לשליחה לארכיון בחרו תשובות של חברותא אחת בלבד', false); return; }
         if (!emails.length || emails.some(em => !validEmail(em))) { toast('בדקו את כתובות המייל', false); return; }
+        const byId = new Map();   // שליחה חוזרת של אותה שאלה: נשארת האחרונה
+        sel.forEach(e => { if (!byId.has(e.id) || byId.get(e.id).ts < e.ts) byId.set(e.id, e); });
         this.disabled = true; status.textContent = 'שולח...'; status.style.color = 'orange';
         const updates = {};
         emails.forEach(em => {
             const k = archiveKeyOf(em);
-            entries.forEach(e => { updates[`archive/${k}/entries/${e.id}`] = { topic: e.topic, sub: e.sub, q: e.q, a: e.a, pair: e.pair, ts: e.ts, room: e.room, qid: e.qid }; });
+            byId.forEach(e => { updates[`archive/${k}/entries/${e.id}`] = { topic: e.topic, sub: e.sub, q: e.q, a: e.a, pair: e.pair, ts: e.ts, room: e.room, qid: e.qid }; });
         });
         try {
             await update(ref(database), updates);
-            const sent = entries.length === 1 ? 'נשלחה תשובה אחת' : `נשלחו ${entries.length} תשובות`;
+            const sent = byId.size === 1 ? 'נשלחה תשובה אחת' : `נשלחו ${byId.size} תשובות`;
             const to = emails.length === 1 ? 'לארכיון אחד' : `ל-${emails.length} ארכיונים`;
             status.textContent = `✅ ${sent} ${to}`; status.style.color = 'green';
             toast(`📚 ${sent} ${to}`);
             setTimeout(() => status.textContent = '', 5000);
         } catch (err) { status.textContent = '❌ שגיאה בשליחה'; status.style.color = 'red'; }
         this.disabled = false;
+    });
+
+    // מחיקת הגשות (ואופציונלית גם מהארכיון האישי של המיילים שהוזנו)
+    async function deleteEntries(entries) {
+        const alsoPersonal = $('arcAlsoPersonal').checked;
+        const emails = alsoPersonal ? arcEmailList() : [];
+        if (alsoPersonal && (!emails.length || emails.some(em => !validEmail(em)))) { toast('כדי למחוק גם מהארכיון האישי, הזינו כתובות מייל תקינות', false); return false; }
+        for (let i = 0; i < entries.length; i += 100) {   // בחלקים, כדי לא לשלוח בקשה ענקית
+            const updates = {};
+            entries.slice(i, i + 100).forEach(e => {
+                updates[`submissions/${e.key}`] = null; updates[`syncState/${e.key}`] = null;
+                emails.forEach(em => { updates[`archive/${archiveKeyOf(em)}/entries/${e.id}`] = null; });
+            });
+            await update(ref(database), updates);
+        }
+        return true;
+    }
+    const personalNote = () => $('arcAlsoPersonal').checked ? '\n(תימחק גם מהארכיון האישי של המיילים שהוזנו.)' : '\n(עותקים ב-Google Sheets ובארכיוני תלמידים לא יימחקו.)';
+
+    $('arcDelete').addEventListener('click', async () => {
+        const sel = arcSelectedEntries();
+        if (!sel.length) { toast('סמנו לפחות תשובה אחת למחיקה', false); return; }
+        if (!confirm(`למחוק ${sel.length} תשובות שהוגשו?\nהפעולה אינה ניתנת לשחזור.${personalNote()}`)) return;
+        try { if (await deleteEntries(sel)) { arcSelected.clear(); toast(`🗑️ נמחקו ${sel.length} תשובות`); } }
+        catch (err) { toast('שגיאה במחיקה', false); }
+    });
+    document.addEventListener('click', async (e) => {
+        const el = e.target.closest('[data-act="del-arc"]');
+        if (!el) return;
+        const entry = arcAll().find(x => x.key === el.dataset.key);
+        if (!entry) return;
+        if (!confirm(`למחוק את התשובה של ${entry.pair} לשאלה:\n"${entry.q.slice(0, 80)}"?\nהפעולה אינה ניתנת לשחזור.${personalNote()}`)) return;
+        try { if (await deleteEntries([entry])) toast('🗑️ התשובה נמחקה'); } catch (err) { toast('שגיאה במחיקה', false); }
     });
 
     // ---------- ניהול שאלות ותשובות: נושא ← תת-נושא ← שאלות (נפתח בלחיצה) ----------
@@ -1233,6 +1253,8 @@
         tr.dataset.act = 'toggle'; tr.dataset.key = key;
         tr.tabIndex = 0; tr.setAttribute('role', 'button'); tr.setAttribute('aria-expanded', String(open));
         const attrs = `data-scope="${scope}" data-topic="${esc(topic)}" data-sub="${esc(sub ?? '')}"`;
+        const vs = manage ? visState(topic, scope === 'topic' ? undefined : (sub ?? '')) : 'all';
+        const visLabel = vs === 'all' ? '👁️ מוצג' : vs === 'some' ? '◐ מוצג חלקית' : '🚫 מוסתר';
         const td = document.createElement('td');
         td.colSpan = 3;
         td.innerHTML = `<div class="grp-head">
@@ -1240,6 +1262,7 @@
                 <span class="grp-caret">${open ? '▾' : '◂'}</span>
                 <span class="grp-label">${scope === 'topic' ? '📚' : '📌'} ${esc(label)}</span>
                 <span class="grp-meta">${esc(meta)}</span>
+                ${manage ? `<button type="button" class="vis-btn vis-${vs}" data-act="toggle-vis" ${attrs} title="הצג או הסתר לתלמידים" aria-label="הצג או הסתר לתלמידים">${visLabel}</button>` : ''}
                 ${manage ? `<span class="grp-actions">
                     <button type="button" class="btn-icon" data-act="rename" ${attrs} title="שנה שם / העבר" aria-label="שנה שם או העבר">✏️</button>
                     <button type="button" class="btn-icon" data-act="del-group" ${attrs} title="מחק את כל השאלות כאן" aria-label="מחק את כל השאלות כאן">🗑️</button>
@@ -1270,7 +1293,7 @@
         });
     }
 
-    function renderAll() { renderQuestionsManager(); renderTeacherTable(); }
+    function renderAll() { renderQuestionsManager(); renderTeacherTable(); renderArchiveTab(); }
 
     function updateSelBar() {
         const onManage = $('tab-manage').classList.contains('active');
@@ -1298,6 +1321,10 @@
             const k = el.dataset.key;
             openKeys.has(k) ? openKeys.delete(k) : openKeys.add(k);
             renderAll();
+        } else if (act === 'toggle-vis') {
+            const vs = visState(topic, bySub ? sub : undefined);
+            try { await setVisibility(topic, bySub ? sub : undefined, vs !== 'all'); }
+            catch (err) { toast('שגיאה בעדכון התצוגה', false); }
         } else if (act === 'sel-group') {
             const ids = scopeIds();
             const all = ids.every(id => selIds.has(id));
